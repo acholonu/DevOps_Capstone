@@ -1,1 +1,80 @@
 version: 2.1
+
+# Think of orbs as libraries or packages for CircleCI
+orbs:
+  slack: circleci/slack@4.4.4
+  aws-cli: circleci/aws-cli@2.0.3
+  #node: circleci/node@4.7.0
+
+# These are custom functions that I use in other jobs
+commands:
+  # Function 1
+  notify_slack_error:
+    steps:
+      - slack/notify:
+          event: fail
+          template: basic_fail_1 # build in formating template to display failure
+          mentions: "@ugochi" #if you want to target a particular person
+          channel: alerts # Slack channel to display to
+
+  # Function 2
+  destroy-environment:
+    description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
+    parameters:
+      # Add parameter here
+      workflow_id:
+        type: string
+    steps:
+      - run:
+          name: Destroy environments
+          when: on_fail
+          command: |
+            # Your code here
+            # Use for roll back
+            # Delete any infrastructure created.
+
+            #echo s3://udapeople-<<parameters.workflow_id>>/
+            #echo uda-frontend-stack-<<parameters.workflow_id>>
+            
+            #aws s3 rm --recursive s3://udapeople-<<parameters.workflow_id>>/
+            #aws s3 rb s3://udapeople-<<parameters.workflow_id>> --force
+            #aws cloudformation delete-stack --stack-name "uda-frontend-stack-<<parameters.workflow_id>>"
+            #aws cloudformation delete-stack --stack-name "uda-backend-stack-<<parameters.workflow_id>>"
+            #aws cloudformation delete-stack --stack-name uda-prometheus-server-stack
+
+jobs:
+  build:
+    docker: 
+      - image: python:3.7.3-stretch
+
+    working_directory: ~/repo
+    
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "requirements.txt" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+      
+      - run:
+          name: install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            make install
+            # Install hadolint
+            wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
+            chmod +x /bin/hadolint
+      
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "requirements.txt" }}
+
+      # run lint!
+      - run:
+          name: run lint
+          command: |
+            . venv/bin/activate
+            make lint 
