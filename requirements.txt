@@ -1,0 +1,14 @@
+# backend processing job
+dagster
+dagit
+dagster-aws
+dagster-cron
+dagster-ge
+dagster-graphql
+dagster-pandas
+dagster-postgres
+dagster-slack
+pandas
+
+# Front End
+streamlit

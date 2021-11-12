@@ -2,13 +2,16 @@
 
 The goal of this project is to deploy a microsoft service onto a kubernetes cluster using best practices in DevOps.  I will deploy the dagster hello world microservice tutorial.
 
-## Tools Use in This Project
+## Tools Used in This Project
 
 - [CircleCI](app.circleci.com)
 - [AWS Kubernetes Service](https://www.eksworkshop.com/010_introduction/)
 - [GitHub](https://github.com/acholonu/DevOps_Capstone)
 - [Ansible](ttps://docs.ansible.com/ansible/latest/cli/ansible-playbook.html)
 - [Prometheus Monitoring](#test)
+- [EKS Tutorial](https://www.eksworkshop.com/010_introduction/)
+- [EKS Tutorial Video](https://www.youtube.com/watch?v=-zmUxsrYw2I&t=7s)
+- [Amazon Secrets Manager](https://aws.amazon.com/secrets-manager/)
 
 ## Files
 
