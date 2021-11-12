@@ -26,7 +26,6 @@ install:
 upgrade:
 	poetry upgrade
 
-
 test:
 	# Additional, optional, tests could go here
 	cat dev_requirements.txt|xargs poetry add dev
