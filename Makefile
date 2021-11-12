@@ -28,7 +28,7 @@ upgrade:
 
 test:
 	# Additional, optional, tests could go here
-	cat dev_requirements.txt|xargs poetry add dev
+	cat dev_requirements.txt|xargs poetry add --dev 
 	#python -m pytest -vv --cov=myrepolib tests/*.py
 	#python -m pytest --nbval notebook.ipynb
 
