@@ -6,15 +6,26 @@
 # (Optional) Build a simple integration test
 
 setup:
-	# Create python virtualenv & source it
+	# install poetry
+	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
+	poetry init
+
+create_environment:
+	# Create python virtualenv & package dependency files
 	python3 --version
-	python3 -m venv ~/.devops
-	source ~/.devops/bin/activate
+	poetry --version
+	poetry shell # activate virtualenvironment
 
 install:
 	# This should be run from inside a virtualenv
-	pip install --upgrade pip &&\
-		pip install -r requirements.txt
+	pip install --upgrade pip
+	poetry self update
+	poetry --version
+	cat requirements.txt|xargs poetry add
+
+upgrade:
+	poetry upgrade
+
 
 test:
 	# Additional, optional, tests could go here
@@ -30,4 +41,4 @@ lint:
 	# This should be run from inside a virtualenv
 	pylint --disable=R,C,W1203,W1309 app.py
 
-all: install lint test
+all: create_environment install lint test

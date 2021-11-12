@@ -2,6 +2,16 @@
 
 The goal of this project is to deploy a microsoft service onto a kubernetes cluster using best practices in DevOps.  I will deploy the dagster hello world microservice tutorial.
 
+## Simple Micorservice
+
+### Backend
+
+The backend consist of two part: A service that polls a postgres database to see if any schema changes have happened. The second service processes schema changes using the orchestration tool called Dagster.  
+
+### Frontend
+
+Simple Flask app that prints backend results to screen.
+
 ## Tools Used in This Project
 
 - [CircleCI](app.circleci.com)

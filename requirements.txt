@@ -1,4 +1,3 @@
-# backend processing job
 dagster
 dagit
 dagster-aws
@@ -9,6 +8,8 @@ dagster-pandas
 dagster-postgres
 dagster-slack
 pandas
-
-# Front End
-streamlit
+pyyaml
+pytest
+hadolint
+pylint
+black
