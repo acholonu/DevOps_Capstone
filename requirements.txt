@@ -9,7 +9,4 @@ dagster-postgres
 dagster-slack
 pandas
 pyyaml
-pytest
-hadolint
-pylint
-black
+flask

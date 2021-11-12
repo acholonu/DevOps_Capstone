@@ -1,0 +1,4 @@
+pytest
+hadolint
+pylint
+black
