@@ -12,6 +12,7 @@ The goal of this project is to deploy a microsoft service onto a kubernetes clus
 - [EKS Tutorial](https://www.eksworkshop.com/010_introduction/)
 - [EKS Tutorial Video](https://www.youtube.com/watch?v=-zmUxsrYw2I&t=7s)
 - [Amazon Secrets Manager](https://aws.amazon.com/secrets-manager/)
+- [Elastic Container Repository - ECR](https://aws.amazon.com/ecr/) I will use this instead of DockerHub, Maybe?
 
 ## Files
 
