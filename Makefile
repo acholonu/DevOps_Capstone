@@ -6,9 +6,13 @@
 # (Optional) Build a simple integration test
 
 setup:
+	# installs hadolint
+	wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64
+
 	# installs poetry
-	#curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
-	poetry init # This is interactive, so don't put in the dependency tree.
+	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
+	poetry init --name Capstone --author "Ugochi Jones <ucacholonu@hotmail.com>" \
+	 --description "Udacity Capstone Project for DevOps Nano Degree" --python [^3.10]
 
 activate_environment:
 	# Create python virtualenv & package dependency files
@@ -28,7 +32,7 @@ upgrade:
 
 test:
 	# Additional, optional, tests could go here
-	cat dev_requirements.txt|xargs poetry add --dev 
+	#cat dev_requirements.txt|xargs poetry add --dev # doesn't work
 	#python -m pytest -vv --cov=myrepolib tests/*.py
 	#python -m pytest --nbval notebook.ipynb
 

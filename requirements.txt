@@ -1,6 +1,4 @@
 pyyaml
-Flask==2.0.0
-boto3
 awscliv2
 dagster
 dagit
@@ -12,10 +10,14 @@ dagster-docker
 dagster-k8s
 dagster-graphql
 pandas
-s3fs
-fsspec
 requests
-jinja2
-matplotlib
-seaborn
-plotly
+pytest
+pytest-cov
+pytest-dependency
+pytest-runner
+pylint
+black
+unittest
+pre-commit
+pdoc3
+mock
