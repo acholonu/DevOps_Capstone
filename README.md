@@ -28,3 +28,7 @@ Simple Flask app that prints backend results to screen.
 
 - Makefile: mainly use so I can test the docker container configuration before implementing within the CircleCI framework.  Will test install pyenv or poetry inside of the container versus venv.
 - Dockerfile: Creates the image that generates the container that will run the dagster app.
+
+## References
+
+- [Mutliple Dockerfiles in Project](https://stackoverflow.com/questions/27409761/docker-multiple-dockerfiles-in-project)
