@@ -7,12 +7,13 @@
 
 setup:
 	# installs hadolint
-	wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64
+	wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
+            chmod +x /bin/hadolint
 
 	# installs poetry
 	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
-	poetry init --name Capstone --author "Ugochi Jones <ucacholonu@hotmail.com>" \
-	 --description "Udacity Capstone Project for DevOps Nano Degree" --python [^3.10]
+	#poetry init --name Capstone --author "Ugochi Jones <ucacholonu@hotmail.com>" \
+	# --description "Udacity Capstone Project for DevOps Nano Degree" --python [^3.10]
 
 activate-environment:
 	# Create python virtualenv & package dependency files
