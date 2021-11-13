@@ -1,32 +1,19 @@
-# syntax=docker/dockerfile:1
+FROM python:3.8.7-slim
 
-#@@@@ UPDATE THIS UGOCHI.  This is from project 4
-FROM python:3.7.3-stretch
+RUN mkdir -p /opt/dagster/dagster_home /opt/dagster/app
 
-## Step 1:
-# Create a working directory
-# Tells Docker to use this path as the default location for all subsequent commands
-WORKDIR /app
+RUN pip install dagit dagster-postgres
 
-## Step 2:
-# Copy source code to working directory
-COPY . app.py /app/
+# Copy your code and workspace to /opt/dagster/app
+COPY repo.py workspace.yaml /opt/dagster/app/
 
-## Step 2a:
-# See what files are in the container
-RUN ls -lha
+ENV DAGSTER_HOME=/opt/dagster/dagster_home/
 
-## Step 3:
-# Install packages from requirements.txt
-#hadolint ignore=DL3013
-RUN pip install --upgrade pip &&\
-    pip install --trusted-host pypi.python.org -r requirements.txt
+# Copy dagster instance YAML to $DAGSTER_HOME
+COPY dagster.yaml /opt/dagster/dagster_home/
 
-## Step 4:
-# Expose port 80
-EXPOSE 80
+WORKDIR /opt/dagster/app
 
-## Step 5:
-# Run app.py at container launch
-CMD ["python", "app.py"]
-#CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
+EXPOSE 3000
+
+ENTRYPOINT ["dagit", "-h", "0.0.0.0", "-p", "3000"]

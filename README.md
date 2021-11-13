@@ -32,3 +32,4 @@ Simple Flask app that prints backend results to screen.
 ## References
 
 - [Mutliple Dockerfiles in Project](https://stackoverflow.com/questions/27409761/docker-multiple-dockerfiles-in-project)
+- [Dagster Example](https://github.com/dagster-io/dagster/tree/master/examples/hacker_news)
