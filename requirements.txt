@@ -16,3 +16,6 @@ s3fs
 fsspec
 requests
 jinja2
+matplotlib
+seaborn
+plotly

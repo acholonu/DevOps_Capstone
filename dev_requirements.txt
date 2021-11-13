@@ -1,8 +1,11 @@
 pytest
 pytest-cov
 pytest-dependency
+pytest-runner
 hadolint
 pylint
 black
 unittest
 pre-commit
+pdoc3
+mock
