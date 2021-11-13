@@ -52,7 +52,7 @@ export DAGSTER_HOME=~/dagster_home
 ```
 
 2. Start the [Dagit process](https://docs.dagster.io/overview/dagit). This will start a Dagit web
-server that, by default, is served on http://localhost:3000.
+server that, by default, is served on <http://localhost:3000>.
 
 ```bash
 dagit
