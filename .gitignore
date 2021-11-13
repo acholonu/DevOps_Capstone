@@ -67,3 +67,4 @@ UserInterfaceState.xcuserstate
 node_modules
 
 archive/
+*.pyc

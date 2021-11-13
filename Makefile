@@ -14,7 +14,7 @@ setup:
 	poetry init --name Capstone --author "Ugochi Jones <ucacholonu@hotmail.com>" \
 	 --description "Udacity Capstone Project for DevOps Nano Degree" --python [^3.10]
 
-activate_environment:
+activate-environment:
 	# Create python virtualenv & package dependency files
 	python3 --version
 	poetry --version
@@ -34,6 +34,16 @@ test:
 	# Additional, optional, tests could go here
 	#python -m pytest -vv --cov=myrepolib tests/*.py
 	#python -m pytest --nbval notebook.ipynb
+
+validate-circleci:
+	# Validate circleci config.yml file
+    # See https://circleci.com/docs/2.0/local-cli/#processing-a-config
+    circleci config process .circleci/config.yml
+
+run-circleci-local:
+	# run circleci on local machine
+    # See https://circleci.com/docs/2.0/local-cli/#running-a-job
+    circleci local execute
 
 lint:
 	# See local hadolint install instructions:   https://github.com/hadolint/hadolint
