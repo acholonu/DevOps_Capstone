@@ -1579,7 +1579,7 @@ python-versions = "*"
 name = "unittest"
 version = "0.0"
 description = ""
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -1694,7 +1694,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "1d1bbd6b0e478fdb3ffd4121aca3a523dacb63ab5411fa15924688473d306eee"
+content-hash = "0ac2ee9878012f835868b995656681b92eebb9525561baf9ac4611f4f5d25fd8"
 
 [metadata.files]
 alembic = [

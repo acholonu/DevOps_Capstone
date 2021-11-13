@@ -33,3 +33,8 @@ Simple Flask app that prints backend results to screen.
 
 - [Mutliple Dockerfiles in Project](https://stackoverflow.com/questions/27409761/docker-multiple-dockerfiles-in-project)
 - [Dagster Example](https://github.com/dagster-io/dagster/tree/master/examples/hacker_news)
+
+## Notes
+
+- To check path of poetry environment use the command `poetry env info`.  My path is currently located at /~/Library/Caches/pypoetry/virtualenvs/capstone-XWfwnle5-py3.10.  So to reactivate this virtual environment I would use:
+  - `source ~/Library/Caches/pypoetry/virtualenvs/capstone-XWfwnle5-py3.10 activate`
