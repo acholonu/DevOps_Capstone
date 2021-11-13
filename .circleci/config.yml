@@ -46,8 +46,6 @@ jobs:
   setup:
     docker: 
       - image: python:3.10.0-slim
-
-    working_directory: ~/repo
     
     steps:
       - checkout
@@ -72,7 +70,6 @@ jobs:
   lint:
     docker: 
       - image: python:3.10.0-slim
-    working_directory: ~/repo
     steps:
       - checkout
       - restore_cache:
@@ -85,6 +82,7 @@ jobs:
       - run:
           name: run lint
           command: |
+            cd dagster_capstone/dagster_capstone
             make lint
 
       # run test
@@ -92,3 +90,6 @@ jobs:
           name: run dagster tests
           command: |
           # Your code here.
+          # @@@ I would put this in its own job
+
+    #build_image:

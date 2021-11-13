@@ -58,6 +58,6 @@ lint:
 
 	# This is a linter for Python source code linter: https://www.pylint.org/
 	# This should be run from inside a virtualenv
-	pylint --disable=R,C,W1203,W1309 app.py
+	pylint --disable=R,C,W1203,W1309 hello_world.py
 
 all: activate_environment install lint test

@@ -23,6 +23,7 @@ Simple Flask app that prints backend results to screen.
 - [EKS Tutorial Video](https://www.youtube.com/watch?v=-zmUxsrYw2I&t=7s)
 - [Amazon Secrets Manager](https://aws.amazon.com/secrets-manager/)
 - [Elastic Container Repository - ECR](https://aws.amazon.com/ecr/) I will use this instead of DockerHub, Maybe?
+- [Postgres Image](https://hub.docker.com/_/postgres)
 
 ## Files
 
