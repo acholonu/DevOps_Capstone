@@ -1,4 +1,0 @@
-# Reference: https://docs.dagster.io/deployment/overview
-# The workspace defines how to access and load your code. You can define workspace configuration using
-load_from:
-  - python_package: data_monitoring
