@@ -1,5 +1,6 @@
-# Change to 3.10
-FROM python:3.8.7-slim 
+# syntax=docker/dockerfile:1
+
+FROM python:3.10.0-slim 
 
 RUN mkdir -p /opt/dagster/dagster_home /opt/dagster/app
 

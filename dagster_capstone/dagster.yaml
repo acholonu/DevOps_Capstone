@@ -1,3 +1,0 @@
-# The Dagster Instance is responsible for managing all deployment-wide components, such as the database. 
-# You can specify the configuration for instance-level components in dagster.yaml.
-# This is empty, so using the defaults.

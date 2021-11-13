@@ -16,7 +16,8 @@ Welcome to your new Dagster repository.
 
 1. Create a new Python environment and activate.
 
-**Pyenv**
+### Pyenv
+
 ```bash
 export PYTHON_VERSION=X.Y.Z
 pyenv install $PYTHON_VERSION
@@ -24,7 +25,8 @@ pyenv virtualenv $PYTHON_VERSION dagster_capstone
 pyenv activate dagster_capstone
 ```
 
-**Conda**
+### Conda
+
 ```bash
 export PYTHON_VERSION=X.Y.Z
 conda create --name dagster_capstone python=PYTHON_VERSION
@@ -57,6 +59,7 @@ dagit
 ```
 
 3. (Optional) If you want to enable Dagster
+
 [Schedules](https://docs.dagster.io/overview/schedules-sensors/schedules) or
 [Sensors](https://docs.dagster.io/overview/schedules-sensors/sensors) for your jobs, start the
 [Dagster Daemon process](https://docs.dagster.io/overview/daemon#main) **in a different shell or terminal**:
@@ -78,3 +81,7 @@ code behaves as desired and does not break over time.
 
 [For hints on how to write tests for ops and graphs in Dagster,
 [see our documentation tutorial on Testing](https://docs.dagster.io/tutorial/testable).
+
+## Notes
+
+- Dagster automatically creates a dagster.html in the home folder (`~/dagster_home`)
