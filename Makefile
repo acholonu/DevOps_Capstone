@@ -7,11 +7,11 @@
 
 setup:
 	# installs hadolint
-	wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
+	sudo wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
             chmod +x /bin/hadolint
 
 	# installs poetry
-	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
+	sudo curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
 	poetry --version
 
 	# For notes purposes
