@@ -46,7 +46,7 @@ jobs:
     docker: 
       # This image has poetry, pyenv, pip, pipenv, and python 3.10 pre-installed
       # https://hub.docker.com/r/cimg/python
-      - image: cimg/python
+      - image: cimg/python:3.9.7
     steps:
       - checkout
       - restore_cache:
