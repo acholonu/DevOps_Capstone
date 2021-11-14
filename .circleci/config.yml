@@ -61,6 +61,9 @@ jobs:
             # Create Environment
             python -m venv capstone
             . capstone/bin/activate
+            #pyenv update
+            #pyenv virtualenv 3.9.7 capstone
+            #pyenv activate capstone
 
             # Check linux operating system of docker container
             cat /etc/os-release
@@ -73,13 +76,14 @@ jobs:
 
       - save_cache:
           paths:
-            - ./capstone
+            - capstone
           key: v1-dependencies-{{ checksum "pyproject.toml" }}
       
       # run lint!
       - run:
           name: run lint
           command: |
+            #pyenv activate capstone
             . capstone/bin/activate
             make lint
 
