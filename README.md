@@ -35,6 +35,7 @@ Simple Flask app that prints backend results to screen.
 - [Mutliple Dockerfiles in Project](https://stackoverflow.com/questions/27409761/docker-multiple-dockerfiles-in-project)
 - [Dagster Example](https://github.com/dagster-io/dagster/tree/master/examples/hacker_news)
 - [Run CircleCI on Local Machine](https://circleci.com/docs/2.0/local-cli/#processing-a-config)
+- [How to Check Linux Version](https://www.cyberciti.biz/faq/how-to-check-os-version-in-linux-command-line/)
 
 ## Notes
 
