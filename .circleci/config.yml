@@ -140,5 +140,5 @@ workflows:
   default:
     jobs:
       - build
-      - lint:
-          requires: [build]
+      # - lint:
+      #     requires: [build]
