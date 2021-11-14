@@ -27,9 +27,9 @@ activate-environment:
 	
 install:
 	# This should be run from inside a virtualenv
-	pip install --upgrade pip
-	poetry self update
-	poetry --version
+	#pip install --upgrade pip
+	#poetry self update
+	#poetry --version
 	cat requirements.txt|xargs poetry add
 	poetry show
 

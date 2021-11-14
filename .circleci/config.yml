@@ -57,6 +57,9 @@ jobs:
       - run:
           name: Install Tools & Dependencies
           command: |
+            # update poetry and pip 
+            pip install --upgrade pip
+            poetry self update
 
             # Create Environment
             python -m venv capstone
@@ -76,12 +79,17 @@ jobs:
 
             # Install python packages
             make install
+
+      - save_cache:
+          paths:
+            - ./capstone
+          key: v1-dependencies-{{ checksum "pyproject.toml" }}
       
       # run lint!
       - run:
           name: run lint
           command: |
-            source ~/capstone/bin/activate
+            . capstone/bin/activate
             cd dagster_capstone/dagster_capstone
             make lint
 
@@ -93,11 +101,6 @@ jobs:
             # @@@ I would put this in its own job
             echo "implement tests and move to it's own job"
 
-      - save_cache:
-          paths:
-            - ./venv
-          key: v1-dependencies-{{ checksum "pyproject.toml" }}
-          
       - slack/notify
 
   #build_docker_image:
