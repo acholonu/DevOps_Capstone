@@ -41,16 +41,6 @@ test:
 	#python -m pytest -vv --cov=myrepolib tests/*.py
 	#python -m pytest --nbval notebook.ipynb
 
-validate-circleci:
-	# Validate circleci config.yml file
-    # See https://circleci.com/docs/2.0/local-cli/#processing-a-config
-    circleci config process .circleci/config.yml
-
-run-circleci-local:
-	# run circleci on local machine
-    # See https://circleci.com/docs/2.0/local-cli/#running-a-job
-    circleci local execute
-
 lint:
 	# See local hadolint install instructions:   https://github.com/hadolint/hadolint
 	# This is linter for Dockerfiles.  I am ignoring rules DL3013 & DL3042
@@ -59,5 +49,13 @@ lint:
 	# This is a linter for Python source code linter: https://www.pylint.org/
 	# This should be run from inside a virtualenv
 	pylint --disable=R,C,W1203,W1309,E1120 dagster_capstone/dagster_capstone/hello_world.py
+
+validate-circleci:
+	# Validate circleci config.yml file
+	circleci config process .circleci/config.yml
+
+run-circleci-local:
+	# run circleci on local machine
+	circleci local execute
 
 all: activate_environment install lint test

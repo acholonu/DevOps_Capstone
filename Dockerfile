@@ -7,6 +7,7 @@ LABEL maintainer "Ugochi Jones <ucachlonu@hotmail.com>"
 ENV POETRY_VERSION 1.1.11
 
 # Install Poetry
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN set -eu; \
     curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py \
         | python - --version "${POETRY_VERSION}"; \
