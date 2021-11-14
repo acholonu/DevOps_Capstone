@@ -15,14 +15,18 @@ def download_cereals():
 @op
 def find_highest_calorie_cereal(cereals):
     """Locate the highest calorie cereal."""
-    sorted_cereals = list(sorted(cereals, key=lambda cereal: cereal["calories"]))
+    sorted_cereals = list(
+        sorted(cereals, key=lambda cereal: cereal["calories"])
+    )
     return sorted_cereals[-1]["name"]
 
 
 @op
 def find_highest_protein_cereal(cereals):
     """Find cereal with the highest protein."""
-    sorted_cereals = list(sorted(cereals, key=lambda cereal: cereal["protein"]))
+    sorted_cereals = list(
+        sorted(cereals, key=lambda cereal: cereal["protein"])
+    )
     return sorted_cereals[-1]["name"]
 
 
