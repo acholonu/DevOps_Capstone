@@ -47,9 +47,7 @@ jobs:
       # This image has poetry, pyenv, pip, pipenv, and python 3.10 pre-installed
       # https://hub.docker.com/r/cimg/python
       - image: cimg/python:3.9.7
-        environment:
-          ENV PYENV_ROOT: ~/.pyenv
-          ENV PATH: $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
+
     steps:
       - checkout
       - restore_cache:
@@ -62,11 +60,11 @@ jobs:
           command: |
             
             # Create Environment
-            #python -m venv capstone
-            #. capstone/bin/activate
-            pyenv update
-            pyenv virtualenv 3.9.7 capstone
-            pyenv activate capstone
+            python -m venv capstone
+            . capstone/bin/activate
+            #pyenv update
+            #pyenv virtualenv 3.9.7 capstone
+            #pyenv activate capstone
 
             # Check linux operating system of docker container
             cat /etc/os-release
@@ -79,15 +77,15 @@ jobs:
 
       - save_cache:
           paths:
-            - ${PATH}
+            - capstone
           key: v1-dependencies-{{ checksum "pyproject.toml" }}
       
       # run lint!
       - run:
           name: run lint
           command: |
-            pyenv activate capstone
-            #. capstone/bin/activate
+            #pyenv activate capstone
+            source capstone/bin/activate
             make lint
 
       # run test

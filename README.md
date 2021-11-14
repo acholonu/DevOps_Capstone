@@ -36,6 +36,7 @@ Simple Flask app that prints backend results to screen.
 - [Dagster Example](https://github.com/dagster-io/dagster/tree/master/examples/hacker_news)
 - [Run CircleCI on Local Machine](https://circleci.com/docs/2.0/local-cli/#processing-a-config)
 - [How to Check Linux Version](https://www.cyberciti.biz/faq/how-to-check-os-version-in-linux-command-line/)
+- [Creating VirtualEnvs with venv](https://docs.python.org/3/library/venv.html)
 
 ## Notes
 
