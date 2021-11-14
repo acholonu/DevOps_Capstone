@@ -4,7 +4,7 @@ version: 2.1
 orbs:
   slack: circleci/slack@4.4.4
   aws-cli: circleci/aws-cli@2.0.3
-  python: rdgozum/python@0.3.2
+  #python: rdgozum/python@0.3.2
 
 # These are custom functions that I use in other jobs
 commands:
@@ -69,9 +69,9 @@ jobs:
           command: |
             
             # Create Environment
-            python -m venv capstone
-            source ./capstone/bin/activate
-            echo -e "VIRTUAL_ENV=${VIRTUAL_ENV}\n"
+            #python -m venv capstone
+            #source ./capstone/bin/activate
+            #echo -e "VIRTUAL_ENV=${VIRTUAL_ENV}\n"
 
 
             # Check linux operating system of docker container
@@ -83,8 +83,6 @@ jobs:
             # Install python packages
             make install
 
-            cd dagster_capstone/dagster_capstone
-
       - save_cache:
           name: Save python virtualenv
           paths:
@@ -93,17 +91,18 @@ jobs:
             #- "/usr/local/lib/python3.8/site-packages"
           key: v1-dependencies-{{ checksum "pyproject.toml" }}
       
-      # run lint!
-      # - run:
-      #     name: run lint
-      #     command: |
-      #       # Activate capstone virtunal environment
-      #       . capstone/bin/activate
+      # run pylint!
+      - run:
+          name: run pylint
+          command: |
+            # Activate capstone virtunal environment
+            #. capstone/bin/activate
 
-      #       #make lint
-      #       cd dagster_capstone/dagster_capstone
-      #       pylint --disable=R,C,W1203,W1309,E1120 hello_world.py
-
+            #make lint
+            cd dagster_capstone/dagster_capstone
+            pylint --disable=R,C,W1203,W1309,E1120 hello_world.py
+      # run black
+      # run flake8
       # run test
       - run:
           name: run dagster tests
@@ -113,27 +112,27 @@ jobs:
             echo "implement tests and move to it's own job"
 
       #- slack/notify # I need to add a SLACK TOKEN to enable this.
-      
-  lint:
-    build:
-    docker: 
-      # This image has poetry, pyenv, pip, pipenv, and python 3.10 pre-installed
-      # https://hub.docker.com/r/cimg/python
-      - image: cimg/python:3.9.7
-    working_directory: ~/project/dagster_capstone/dagster_capstone
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "pyproject.toml" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
-      - python/flake8:
-          src: .
-      - python/pylint:
-          src: .
-      - python/black:
-          src: .
+
+  # lint:
+  #   build:
+  #   docker: 
+  #     # This image has poetry, pyenv, pip, pipenv, and python 3.10 pre-installed
+  #     # https://hub.docker.com/r/cimg/python
+  #     - image: cimg/python:3.9.7
+  #   working_directory: ~/project/dagster_capstone/dagster_capstone
+  #   steps:
+  #     - checkout
+  #     - restore_cache:
+  #         keys:
+  #         - v1-dependencies-{{ checksum "pyproject.toml" }}
+  #         # fallback to using the latest cache if no exact match is found
+  #         - v1-dependencies-
+  #     - python/flake8:
+  #         src: .
+  #     - python/pylint:
+  #         src: .
+  #     - python/black:
+  #         src: .
 
   #build_docker_image:
 
