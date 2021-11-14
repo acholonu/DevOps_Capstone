@@ -70,7 +70,7 @@ jobs:
             
             # Create Environment
             python -m venv capstone
-            source ./capstone/bin/activate
+            #source ./capstone/bin/activate
             echo -e "VIRTUAL_ENV=${VIRTUAL_ENV}\n"
 
 
@@ -79,6 +79,8 @@ jobs:
 
             # install tools
             make setup
+            poetry shell
+            echo -e "VIRTUAL_ENV=${VIRTUAL_ENV}\n"
 
             # Install python packages
             make install
@@ -90,7 +92,7 @@ jobs:
           paths:
             - capstone
             - "/usr/local/bin"
-            #- "/usr/local/lib/python3.8/site-packages"
+            - "/home/circleci/.pyenv/versions/3.9.7/lib/python3.9/site-packages"
           key: v1-dependencies-{{ checksum "pyproject.toml" }}
       
       # run pylint!
