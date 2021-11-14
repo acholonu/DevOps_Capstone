@@ -52,7 +52,12 @@ jobs:
       - checkout
       # Use the chown command to grant CircleCI access to dependency locations
       - run: sudo chown -R circleci:circleci /usr/local/bin
-      - run: sudo chown -R circleci:circleci /usr/local/lib/python3.9/site-packages
+      #- run: sudo chown -R circleci:circleci /usr/local/lib/python3.9/site-packages
+      - run:
+          name: list what is in bin
+          command: |
+            sudo ls /usr/local/lib
+
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "pyproject.toml" }}
@@ -82,7 +87,7 @@ jobs:
           paths:
             - capstone
             - "/usr/local/bin"
-            - "/usr/local/lib/python3.9.7/site-packages"
+            #- "/usr/local/lib/python3.9.7/site-packages"
           key: v1-dependencies-{{ checksum "pyproject.toml" }}
       
       # run lint!
