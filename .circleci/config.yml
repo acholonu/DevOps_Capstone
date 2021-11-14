@@ -46,7 +46,8 @@ jobs:
     docker: 
       # This image has poetry, pyenv, pip, pipenv, and python 3.10 pre-installed
       # https://hub.docker.com/r/cimg/python
-      - image: cimg/python:3.10.0
+      #- image: cimg/python
+      - image: python:3.9.7-bullseye
     steps:
       - checkout
       - restore_cache:
@@ -57,29 +58,16 @@ jobs:
       - run:
           name: Install Tools & Dependencies
           command: |
-            # install fixed version of poetry
-            #curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
             
-            # update poetry and pip 
-            # pip install --upgrade pip
-            #poetry self update
-
             # Create Environment
             python -m venv capstone
             . capstone/bin/activate
 
-            # installs hadolint
-            # wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
-            #          chmod +x /bin/hadolint
-
             # Check linux operating system of docker container
             cat /etc/os-release
 
+            # install tools
             make setup
-
-            # Check tool versions
-            python3 --version
-            poetry --version
 
             # Install python packages
             make install
