@@ -113,6 +113,7 @@ jobs:
             echo "implement tests and move to it's own job"
 
       #- slack/notify # I need to add a SLACK TOKEN to enable this.
+      
   lint:
     build:
     docker: 
