@@ -102,6 +102,7 @@ jobs:
       - run:
           name: run lint
           command: |
+            source ~/capstone/bin/activate
             cd dagster_capstone/dagster_capstone
             make lint
 
