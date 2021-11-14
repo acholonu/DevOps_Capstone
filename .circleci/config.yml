@@ -48,16 +48,12 @@ jobs:
       - image: python:3.10.0-slim
     steps:
       - checkout
-      - restore_cache:
-          keys:
-          #- v1-dependencies-{{ checksum "pyproject.toml" }}
-          - v1-dependencies-{{ checksum "requirements.txt" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
       
       - run:
           name: Install Tools
           command: |
+            apt-get install wget curl
+
             # installs hadolint
             wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
                       chmod +x /bin/hadolint
@@ -75,6 +71,12 @@ jobs:
             source ~/capstone/bin/activate
             poetry env info
 
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "pyproject.toml" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+
       - run:
           name: Install Dependencies
           command: |
@@ -83,7 +85,7 @@ jobs:
       - save_cache:
           paths:
             - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
+          key: v1-dependencies-{{ checksum "pyproject.toml" }}
   
   lint:
     docker: 
@@ -109,7 +111,7 @@ jobs:
           command: |
             # Your code here.
             # @@@ I would put this in its own job
-            echo "implement tests"
+            echo "implement tests and move to it's own job"
 
     #build_image:
 
