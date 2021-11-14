@@ -52,7 +52,7 @@ jobs:
       - checkout
       # Use the chown command to grant CircleCI access to dependency locations
       - run: sudo chown -R circleci:circleci /usr/local/bin
-      - run: sudo chown -R circleci:circleci /usr/local/lib/python3.8/site-packages
+      #- run: sudo chown -R circleci:circleci /usr/local/lib/python3.8/site-packages
       - run:
           name: list what is in bin
           command: |
