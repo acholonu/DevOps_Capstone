@@ -58,24 +58,24 @@ jobs:
           name: Install Tools & Dependencies
           command: |
             # install fixed version of poetry
-            python get-poetry.py --uninstall
-            curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
+            #curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
             
             # update poetry and pip 
-            pip install --upgrade pip
-            poetry self update
+            # pip install --upgrade pip
+            #poetry self update
 
             # Create Environment
             python -m venv capstone
             . capstone/bin/activate
-            poetry env info
 
             # installs hadolint
-            wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
-                      chmod +x /bin/hadolint
+            # wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
+            #          chmod +x /bin/hadolint
 
             # Check linux operating system of docker container
             cat /etc/os-release
+
+            make setup
 
             # Check tool versions
             python3 --version
@@ -105,7 +105,7 @@ jobs:
             # @@@ I would put this in its own job
             echo "implement tests and move to it's own job"
 
-      - slack/notify
+      #- slack/notify # I need to add a SLACK TOKEN to enable this.
 
   #build_docker_image:
 

@@ -12,7 +12,8 @@ setup:
 
 	# installs poetry
 	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
-	
+	poetry --version
+
 	# For notes purposes
 	#poetry init --name Capstone --author "Ugochi Jones <ucacholonu@hotmail.com>" \
 	# --description "Udacity Capstone Project for DevOps Nano Degree" --python [^3.10]
@@ -27,7 +28,7 @@ activate-environment:
 	
 install:
 	# This should be run from inside a virtualenv
-	#pip install --upgrade pip
+	pip install --upgrade pip
 	#poetry self update
 	#poetry --version
 	cat requirements.txt|xargs poetry add
