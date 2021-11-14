@@ -40,3 +40,6 @@ Simple Flask app that prints backend results to screen.
 
 - To check path of poetry environment use the command `poetry env info`.  My path is currently located at /~/Library/Caches/pypoetry/virtualenvs/capstone-XWfwnle5-py3.10.  So to reactivate this virtual environment I would use:
   - `source ~/Library/Caches/pypoetry/virtualenvs/capstone-XWfwnle5-py3.10 activate`
+- Ran into a warning in the construction of my Dockerfile (i.e., Dockerfile:10 DL4006 warning: Set the SHELL option -o pipefail before RUN with a pipe in it).  Here are the two URLs that helped me fixed these errors.
+  - <https://githubmemory.com/repo/hadolint/hadolint/issues/724>
+  - <https://github.com/hadolint/hadolint/wiki/DL4006>

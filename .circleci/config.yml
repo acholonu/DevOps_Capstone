@@ -93,3 +93,10 @@ jobs:
           # @@@ I would put this in its own job
 
     #build_image:
+
+workflows:
+  default:
+    jobs:
+      - setup
+      - lint:
+          requires: [setup]
