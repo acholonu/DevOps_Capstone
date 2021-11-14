@@ -43,23 +43,41 @@ commands:
             #aws cloudformation delete-stack --stack-name uda-prometheus-server-stack
 
 jobs:
-  setup:
+  build:
     docker: 
       - image: python:3.10.0-slim
-    
     steps:
       - checkout
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "pyproject.toml" }}
+          #- v1-dependencies-{{ checksum "pyproject.toml" }}
+          - v1-dependencies-{{ checksum "requirements.txt" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
       
       - run:
-          name: install dependencies
+          name: Install Tools
           command: |
-            make setup
-            make activate-environment
+            # installs hadolint
+            wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
+                      chmod +x /bin/hadolint
+
+            # installs poetry
+            curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
+            
+            python3 --version
+            poetry --version
+
+      - run:
+          name: Set Up Environment
+          command: |
+            python -m venv ~./capstone
+            source ~/capstone/bin/activate
+            poetry env info
+
+      - run:
+          name: Install Dependencies
+          command: |
             make install
       
       - save_cache:
@@ -89,14 +107,15 @@ jobs:
       - run:
           name: run dagster tests
           command: |
-          # Your code here.
-          # @@@ I would put this in its own job
+            # Your code here.
+            # @@@ I would put this in its own job
+            echo "implement tests"
 
     #build_image:
 
 workflows:
   default:
     jobs:
-      - setup
+      - build
       - lint:
-          requires: [setup]
+          requires: [build]
