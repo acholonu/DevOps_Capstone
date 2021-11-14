@@ -85,7 +85,7 @@ jobs:
             # Install python packages
             make install
 
-            pip install pylint
+            #pip install pylint
             make lint
 
       - save_cache:
