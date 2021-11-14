@@ -50,6 +50,9 @@ jobs:
 
     steps:
       - checkout
+      # Use the chown command to grant CircleCI access to dependency locations
+      - run: sudo chown -R circleci:circleci /usr/local/bin
+      - run: sudo chown -R circleci:circleci /usr/local/lib/python3.9.7/site-packages
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "pyproject.toml" }}
@@ -62,11 +65,8 @@ jobs:
             # Create Environment
             python -m venv capstone
             source ./capstone/bin/activate
-            echo "VIRTUAL_ENV=${VIRTUAL_ENV}"
+            echo -e "VIRTUAL_ENV=${VIRTUAL_ENV}\n"
 
-            #pyenv update
-            #pyenv virtualenv 3.9.7 capstone
-            #pyenv activate capstone
 
             # Check linux operating system of docker container
             cat /etc/os-release
@@ -78,8 +78,11 @@ jobs:
             make install
 
       - save_cache:
+          name: Save python virtualenv
           paths:
             - capstone
+            - "/usr/local/bin"
+            - "/usr/local/lib/python3.9.7/site-packages"
           key: v1-dependencies-{{ checksum "pyproject.toml" }}
       
       # run lint!
