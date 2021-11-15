@@ -16,10 +16,6 @@ setup:
 	poetry self update # update poetry
 	poetry --version
 
-	# For notes purposes
-	#poetry init --name Capstone --author "Ugochi Jones <ucacholonu@hotmail.com>" \
-	# --description "Udacity Capstone Project for DevOps Nano Degree" --python [^3.10]
-
 activate-environment:
 	# Create python virtualenv & package dependency files
 	python3 --version

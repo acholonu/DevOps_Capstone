@@ -53,12 +53,6 @@ jobs:
       - checkout
       # Use the chown command to grant CircleCI access to dependency locations
       - run: sudo chown -R circleci:circleci /usr/local/bin
-      #- run: sudo chown -R circleci:circleci /usr/local/lib/python3.8/site-packages
-      - run:
-          name: list what is in bin
-          command: |
-            sudo ls /usr/local/lib/python3.8
-
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "pyproject.toml" }}
@@ -66,13 +60,12 @@ jobs:
           - v1-dependencies-
       - run:
           name: Install Tools & Dependencies
+          no_output_timeout: 30m
           command: |
             
             # Create Environment
             python -m venv capstone
-            #source ./capstone/bin/activate
             echo -e "VIRTUAL_ENV=${VIRTUAL_ENV}\n"
-
 
             # Check linux operating system of docker container
             cat /etc/os-release
@@ -93,7 +86,7 @@ jobs:
           paths:
             - capstone
             - "/usr/local/bin"
-            - "/home/circleci/.pyenv/versions/3.9.7/lib/python3.9/site-packages"
+            - ".cache/pypoetry/virtualenvs"
           key: v1-dependencies-{{ checksum "pyproject.toml" }}
       
       # run pylint!
