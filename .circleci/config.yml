@@ -73,13 +73,10 @@ jobs:
 
             # install tools
             make setup
-            #poetry shell
-            echo -e "VIRTUAL_ENV=${VIRTUAL_ENV}\n"
 
             # Install python packages
-            make install
+            make pip-install
 
-            pip install pylint
             make lint
 
       - save_cache:

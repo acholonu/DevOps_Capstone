@@ -12,7 +12,6 @@ setup:
 
 	# installs poetry
 	#sudo curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
-	#pip install --user poetry
 	poetry self update # update poetry
 	poetry --version
 
@@ -24,13 +23,17 @@ activate-environment:
 	. capstone/bin/activate
 	poetry env info
 	
-install:
+poetry-install:
 	# This should be run from inside a virtualenv
 	pip install --upgrade pip
-	#poetry self update
-	#poetry --version
+	poetry self update
+	poetry --version
 	cat requirements.txt|xargs poetry add
 	poetry show
+
+pip-install:
+	pip install --upgrade pip
+	pip install -r requirements.txt
 
 upgrade:
 	poetry upgrade
@@ -49,7 +52,6 @@ lint:
 	# This should be run from inside a virtualenv
 	pylint --disable=R,C,W1203,W1309,E1120 dagster_capstone/dagster_capstone/hello_world.py
 	black dagster_capstone/dagster_capstone/hello_world.py
-	flake8 dagster_capstone/dagster_capstone/hello_world.py
 
 validate-circleci:
 	# Validate circleci config.yml file
