@@ -4,7 +4,6 @@ version: 2.1
 orbs:
   slack: circleci/slack@4.4.4
   aws-cli: circleci/aws-cli@2.0.3
-  #python: rdgozum/python@0.3.2
 
 # These are custom functions that I use in other jobs
 commands:
@@ -18,6 +17,20 @@ commands:
           channel: alerts # Slack channel to display to
 
   # Function 2
+  destroy-docker-image:
+    description: Destroy docker image
+    parameters:
+      # Add parameter here
+      workflow_id:
+        type: string
+    steps:
+      - run:
+          name: Destroy docker image
+          when: on_fail
+          command: |
+            # Your code here
+
+  # Function 3
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
@@ -43,11 +56,11 @@ commands:
             #aws cloudformation delete-stack --stack-name uda-prometheus-server-stack
 
 jobs:
-  build:
+  lint:
     docker: 
       # This image has poetry, pyenv, pip, pipenv, and python 3.10 pre-installed
       # https://hub.docker.com/r/cimg/python
-      - image: cimg/python:3.9.7
+      - image: cimg/python:3.9.7-browsers
 
     steps:
       - checkout
@@ -60,7 +73,6 @@ jobs:
           - v1-dependencies-
       - run:
           name: Install Tools & Dependencies
-          no_output_timeout: 30m
           command: |
             
             # Create Environment
@@ -83,18 +95,8 @@ jobs:
           name: Save python virtualenv
           paths:
             - capstone
-            #- "/usr/local/bin"
-            #- ".cache/pypoetry/virtualenvs"
-          key: v1-dependencies-{{ checksum "pyproject.toml" }}
-      
-      # run pylint!
-      # - run:
-      #     name: run pylint
-      #     command: |
-      #       # Activate capstone virtunal environment
-      #       . capstone/bin/activate
 
-      #       make lint
+          key: v1-dependencies-{{ checksum "pyproject.toml" }}
       
       # run test
       - run:
@@ -106,32 +108,50 @@ jobs:
 
       #- slack/notify # I need to add a SLACK TOKEN to enable this.
 
-  # lint:
-  #   build:
-  #   docker: 
-  #     # This image has poetry, pyenv, pip, pipenv, and python 3.10 pre-installed
-  #     # https://hub.docker.com/r/cimg/python
-  #     - image: cimg/python:3.9.7
-  #   working_directory: ~/project/dagster_capstone/dagster_capstone
-  #   steps:
-  #     - checkout
-  #     - restore_cache:
-  #         keys:
-  #         - v1-dependencies-{{ checksum "pyproject.toml" }}
-  #         # fallback to using the latest cache if no exact match is found
-  #         - v1-dependencies-
-  #     - python/flake8:
-  #         src: .
-  #     - python/pylint:
-  #         src: .
-  #     - python/black:
-  #         src: .
+  build:
+    docker:
+      - image: cimg/python:3.9.7-browsers
+    working_directory: dagster_capstone/dagster_capstone
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "pyproject.toml" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+      - run:
+          name: Run App
+          no_output_timeout: 30m
+          command: |
+            # Activate Environment
+            . capstone/bin/activate
 
-  #build_docker_image:
+            # Run app
+            #dagit 
+      - run:
+          name: Smoke Test for FrontEnd
+          command: |
+            # Your code here
+
+  build_upload_docker_image:
+    docker:
+      - image: cimg/python:3.9.7-browsers
+
+    steps:
+      - checkout
 
 workflows:
   default:
     jobs:
-      - build
-      # - lint:
-      #     requires: [build]
+      - lint
+      - build:
+          requires: [lint]
+      #- build_upload_docker_image:
+      #    requires: [build]
+      # - deploy_infrastucture:
+      #     requires: [build_upload_docker_image]
+      #     filters:
+      #       branches:
+      #         only: [main]
+
+      
