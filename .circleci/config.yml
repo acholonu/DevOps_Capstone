@@ -65,6 +65,7 @@ jobs:
             
             # Create Environment
             python -m venv capstone
+            . capstone/bin/activate
             echo -e "VIRTUAL_ENV=${VIRTUAL_ENV}\n"
 
             # Check linux operating system of docker container
@@ -72,21 +73,21 @@ jobs:
 
             # install tools
             make setup
-            poetry shell
+            #poetry shell
             echo -e "VIRTUAL_ENV=${VIRTUAL_ENV}\n"
 
             # Install python packages
             make install
 
-            #pip install pylint
+            pip install pylint
             make lint
 
       - save_cache:
           name: Save python virtualenv
           paths:
             - capstone
-            - "/usr/local/bin"
-            - ".cache/pypoetry/virtualenvs"
+            #- "/usr/local/bin"
+            #- ".cache/pypoetry/virtualenvs"
           key: v1-dependencies-{{ checksum "pyproject.toml" }}
       
       # run pylint!

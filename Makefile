@@ -20,8 +20,8 @@ activate-environment:
 	# Create python virtualenv & package dependency files
 	python3 --version
 	poetry --version
-	python -m venv ~./capstone
-	source ~/capstone/bin/activate
+	python -m venv capstone
+	. capstone/bin/activate
 	poetry env info
 	
 install:
