@@ -38,6 +38,8 @@ Simple Flask app that prints backend results to screen.
 - [How to Check Linux Version](https://www.cyberciti.biz/faq/how-to-check-os-version-in-linux-command-line/)
 - [Creating VirtualEnvs with venv](https://docs.python.org/3/library/venv.html)
 - [Python Application with CircleCi](https://circleci.com/docs/2.0/language-python/)
+- [Udacity Capstone Examples](https://knowledge.udacity.com/questions/55383)
+- [CircleCI Kubernetes](https://circleci.com/developer/orbs/orb/circleci/aws-eks#usage-create-eks-cluster)
 
 ## Notes
 
