@@ -1,6 +1,9 @@
 # syntax=docker/dockerfile:1
 
-FROM python:3.10.0-slim 
+# syntax=docker/dockerfile:1
+
+FROM cimg/python:3.9.7
+#FROM python:3.10.0-slim 
 
 LABEL maintainer "Ugochi Jones <ucachlonu@hotmail.com>"
 
@@ -16,9 +19,10 @@ RUN set -eu; \
 ENV PATH="/root/.local/bin:$PATH"
 
 RUN mkdir -p /opt/dagster/dagster_home /opt/dagster/app
-#RUN pip install dagit dagster-postgres
+RUN pip install -U pip && \
+    pip install dagster-docker dagster-k8s
 
-# Copy your code and workspace to /opt/dagster/app
+# Copy code and workspace to /opt/dagster/app
 COPY dagster_capstone/ /opt/dagster/app/
 
 ENV DAGSTER_HOME=/opt/dagster/dagster_home/

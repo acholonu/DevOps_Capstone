@@ -4,6 +4,9 @@ The goal of this project is to deploy a microsoft service onto a kubernetes clus
 
 ## Simple Micorservice
 
+- Flask app that triggers dagster container to execute a workflow.  The result of that workflow is then printed to the screen.
+- The flask app has a simple button that says trigger.  Once triggered the dagster process goes off (the frontend shows processing).  And when done, shows the output of the dagster process
+
 ### Backend
 
 The backend consist of two part: A service that polls a postgres database to see if any schema changes have happened. The second service processes schema changes using the orchestration tool called Dagster.  

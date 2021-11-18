@@ -110,12 +110,81 @@ jobs:
 
       #- slack/notify # I need to add a SLACK TOKEN to enable this.
 
+  build:
+    docker:
+      - image: cimg/python:3.9.7-browsers
+        environment:
+          TEST_DATABASE_URL: postgresql://root@localhost/circle_test?sslmode=disable
+      
+      # Service Container
+      # https://circleci.com/docs/2.0/project-walkthrough/
+      - image: circleci/postgres
+        environment:
+          POSTGRES_USER: root
+          POSTGRES_DB: circle_test
+          POSTGRES_PASSWORD: ""
+    working_directory: dagster_capstone/dagster_capstone
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "pyproject.toml" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+      - run:
+          name: Run App
+          no_output_timeout: 30m
+          command: |
+            # Activate Environment
+            . capstone/bin/activate
+
+            # Run app
+            #dagit -d  
+
+      - run:
+          name: Smoke Test for FrontEnd
+          command: |
+            # Your code here
+
   build_upload_docker_image:
     docker:
       - image: cimg/python:3.9.7
 
     steps:
       - checkout
+
+  test-cluster:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+    steps:
+      - kubernetes/install
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+      - run:
+          command: |
+            kubectl get services
+          name: Test cluster
+
+  create-deployment:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+    steps:
+      - checkout
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+          install-kubectl: true
+      - kubernetes/create-or-update-resource:
+          get-rollout-status: true
+          resource-file-path: tests/nginx-deployment/deployment.yaml
+          resource-name: deployment/nginx-deployment
 
 workflows:
   default:
@@ -133,3 +202,36 @@ workflows:
           filters:
             branches:
               only: [main]
+
+      - aws-eks/create-cluster:
+          cluster-name: my-eks-demo
+          requires: [deploy_infrastructure]
+
+      - test-cluster:
+          cluster-name: my-eks-demo
+          requires:
+            - aws-eks/create-cluster
+
+      - create-deployment:
+          cluster-name: eks-demo-deployment
+          requires:
+            - aws-eks/create-cluster
+
+      - aws-eks/update-container-image:
+          cluster-name: eks-demo-deployment
+          container-image-updates: 'nginx=nginx:1.9.1'
+          post-steps:
+            - kubernetes/delete-resource:
+                resource-names: nginx-deployment
+                resource-types: deployment
+                wait: true
+          record: true
+          requires:
+            - create-deployment
+          resource-name: deployment/nginx-deployment
+
+      - aws-eks/delete-cluster:
+          cluster-name: my-eks-demo
+          requires:
+            - test-cluster
+      
