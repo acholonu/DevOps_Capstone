@@ -1,11 +1,9 @@
 # syntax=docker/dockerfile:1
 
-# syntax=docker/dockerfile:1
-
 FROM cimg/python:3.9.7
 #FROM python:3.10.0-slim 
 
-LABEL maintainer "Ugochi Jones <ucachlonu@hotmail.com>"
+LABEL role "Backend"
 
 ENV POETRY_VERSION 1.1.11
 

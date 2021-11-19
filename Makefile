@@ -53,6 +53,10 @@ lint:
 	# This should be run from inside a virtualenv
 	pylint --disable=R,C,W1203,W1309,E1120 dagster_capstone/dagster_capstone/hello_world.py
 	black dagster_capstone/dagster_capstone/hello_world.py
+	
+	pylint --disable=R,C,W1203,W1309,E1120 sample_app/app.py
+	black sample_app/app.py
+	
 
 validate-circleci:
 	# Validate circleci config.yml file

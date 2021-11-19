@@ -43,6 +43,7 @@ Simple Flask app that prints backend results to screen.
 - [Python Application with CircleCi](https://circleci.com/docs/2.0/language-python/)
 - [Udacity Capstone Examples](https://knowledge.udacity.com/questions/55383)
 - [CircleCI Kubernetes](https://circleci.com/developer/orbs/orb/circleci/aws-eks#usage-create-eks-cluster)
+- [Docker and Postgres DB](https://dev.to/andre347/how-to-easily-create-a-postgres-database-in-docker-4moj)
 
 ## Notes
 
