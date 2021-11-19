@@ -17,3 +17,20 @@ docker build --tag sample_flask_app:beta sample_app
 # How to run the docker files
 docker build -f Dagster.Dockerfile .
 docker build -f DB.Dockerfile .
+
+# Viewing Images
+# --------------
+# To see all the images on your local machine
+docker images
+
+# Add another tag to an image
+# ----------------------------
+# The docker tag command creates a new tag for an image. It does not create a new image.
+# The tag points to the same image and is just another way to reference the image. 
+# Both tags will show up if you do the `docker images` command and their image ids will be 
+# the same. Again, tags are just another
+docker tag python-docker:latest python-docker:v1.0.0
+
+# Removing a Tag
+# --------------
+docker rmi python-docker:v1.0.0
