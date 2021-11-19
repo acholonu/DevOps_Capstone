@@ -52,3 +52,4 @@ Simple Flask app that prints backend results to screen.
 - Ran into a warning in the construction of my Dockerfile (i.e., Dockerfile:10 DL4006 warning: Set the SHELL option -o pipefail before RUN with a pipe in it).  Here are the two URLs that helped me fixed these errors.
   - <https://githubmemory.com/repo/hadolint/hadolint/issues/724>
   - <https://github.com/hadolint/hadolint/wiki/DL4006>
+- The pylintrc file is the configuration file for the pylint package.  I generated this config file typing the following command `pylint --generate-rcfile > pylintrc`. More information can be found here: <https://pylint.pycqa.org/en/latest/user_guide/options.html>.
