@@ -148,4 +148,4 @@ docker run --rm -d -v postgresql:/var/lib/postgresql \
 # Connect to the running Postgres database inside the container using the following command and enter “p@ssw0rd1” when 
 # prompted for the password. -ti or -t -i means tag (to identify the container) and i (means interactive).  So you 
 # will get an interactive prompt asking for your password.
-docker exec -ti postgresdb postgres -u root -p
+docker exec -ti dagsterdb postgres -u root -p
