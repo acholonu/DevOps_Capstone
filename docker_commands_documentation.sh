@@ -117,3 +117,35 @@ docker restart <container name>
 
 # Create a Docker Volume to persist data
 # --------------------------------------
+# Instead of downloading MySQL, installing, configuring, and then running the MySQL database as a service, 
+# we can use the Docker Official Image for Postgres and run it in a container. Before we run Postgres in a container, 
+# we’ll create a couple of volumes that Docker can manage to store our persistent data and configuration. 
+# Let’s use the managed volumes feature that Docker provides instead of using bind mounts. Let’s create our volumes now. 
+# We’ll create one for the data and one for configuration of MySQL.
+docker volume create postgresql
+docker volume create postgres_config
+
+# Create a Docker Network
+# -----------------------
+# Now we’ll create a network that our application and database will use to talk to each other. The network is called 
+# a user-defined bridge network and gives us a nice DNS lookup service which we can use when creating our connection 
+# string.
+docker network create postgresnet
+
+# Run database image in a container
+# ---------------------------------
+# Now we can run Postgres in a container and attach to the volumes and network we created above. Docker pulls the image
+# from Hub and runs it for you locally. In the following command, option -v is for starting the container with volumes.
+docker run --rm -d -v postgresql:/var/lib/postgresql \
+  -v postgres_config:/etc/postgres -p 5432:5432 \
+  --network postgresnet \
+  --name dagsterdb \
+  -e POSTGRES_PASSWORD=p@ssw0rd1 \
+  postgres 
+
+# Connect to database in docker
+# -----------------------------
+# Connect to the running Postgres database inside the container using the following command and enter “p@ssw0rd1” when 
+# prompted for the password. -ti or -t -i means tag (to identify the container) and i (means interactive).  So you 
+# will get an interactive prompt asking for your password.
+docker exec -ti postgresdb postgres -u root -p

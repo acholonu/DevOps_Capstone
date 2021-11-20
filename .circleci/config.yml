@@ -99,7 +99,24 @@ jobs:
             - capstone
 
           key: v1-dependencies-{{ checksum "pyproject.toml" }}
-      
+
+      #- slack/notify # I need to add a SLACK TOKEN to enable this.
+  
+  test:
+    docker: 
+      # This image has poetry, pyenv, pip, pipenv, and python 3.10 pre-installed
+      # https://hub.docker.com/r/cimg/python
+      - image: cimg/python:3.9.7
+
+    steps:
+      - checkout
+      # Use the chown command to grant CircleCI access to dependency locations
+      - run: sudo chown -R circleci:circleci /usr/local/bin
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "pyproject.toml" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
       # run test
       - run:
           name: run dagster tests
@@ -107,10 +124,10 @@ jobs:
             # Your code here.
             # @@@ I would put this in its own job
             echo "implement tests and move to it's own job"
-
       #- slack/notify # I need to add a SLACK TOKEN to enable this.
 
-  build_upload_docker_image:
+
+  build_and_upload_docker_image:
     docker:
       - image: cimg/python:3.9.7
 
@@ -122,14 +139,14 @@ workflows:
     jobs:
       - lint
 
-      - build:
+      - test:
           requires: [lint]
 
-      - build_upload_docker_image:
-         requires: [build]
+      # - build_and_upload_docker_image:
+      #    requires: [test]
 
-      - deploy_infrastucture:
-          requires: [build_upload_docker_image]
-          filters:
-            branches:
-              only: [main]
+      # - deploy_infrastucture:
+      #     requires: [build_upload_docker_image]
+      #     filters:
+      #       branches:
+      #         only: [main]
