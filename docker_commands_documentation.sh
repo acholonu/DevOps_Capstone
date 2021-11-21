@@ -135,9 +135,11 @@ docker network create postgresnet
 # Run database image in a container
 # ---------------------------------
 # Now we can run Postgres in a container and attach to the volumes and network we created above. Docker pulls the image
-# from Hub and runs it for you locally. In the following command, option -v is for starting the container with volumes.
+# from Hub and runs it for you locally. In the following command, option -v or --volume is for starting the container with volumes.
+# More on volumes: https://docs.docker.com/storage/volumes/
+# -v or --volume <name of the volume(it's unique to the host)>:<containter path>:<optional args>
 docker run --rm -d -v postgresql:/var/lib/postgresql \
-  -v postgres_config:/etc/postgres -p 5432:5432 \
+  --volumne postgres_config:/etc/postgres -p 5432:5432 \
   --network postgresnet \
   --name dagsterdb \
   -e POSTGRES_PASSWORD=p@ssw0rd1 \
@@ -149,3 +151,29 @@ docker run --rm -d -v postgresql:/var/lib/postgresql \
 # prompted for the password. -ti or -t -i means tag (to identify the container) and i (means interactive).  So you 
 # will get an interactive prompt asking for your password.
 docker exec -ti dagsterdb postgres -u root -p
+
+# Create a volume outside of container
+# ------------------------------------
+docker volume create my-vol
+
+# List volumes
+# ------------
+docker volume ls
+
+# Inspect volumes
+# ---------------
+docker volume inspect my-vol
+
+# Remove a volume
+# ---------------
+docker volume rm my-vol
+
+# Start a container with a volume
+# -------------------------------
+# Run the container named "devtest" in the background and attach a volume name myvol2 to the container. To
+# access the volume within the container, use the path /app (so the relative to the working directory) from
+# the image nginx:latest, and make it a read-only (i.e., ro) volume.
+docker run -d \
+  --name devtest \
+  -v myvol2:/app:ro \
+  nginx:latest
