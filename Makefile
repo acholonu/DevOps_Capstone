@@ -54,7 +54,7 @@ lint:
 	pylint --disable=R,C,W1203,W1309,E1120 dagster/dagster_capstone/hello_world.py
 	black dagster/dagster_capstone/hello_world.py
 	
-	pylint --disable=R,C,W1203,W1309,E1120 sample_app/app.py
+	pylint --disable=R,C,W1203,W1309,E1120 frontend_web_app/app.py
 	black frontend_web_app/app.py
 	
 

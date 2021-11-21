@@ -134,7 +134,7 @@ Resources:
 # Elastic IP's are public IP addresses that never change
 # We need two NATGateways because the the subnets are in different availability zones
   NatGateway1EIP:
-    Type: AWS::EC2::EIP
+    Type: AWS::EC2::EIP #Elastic IP 1
     # DependsOn says don't create until the resource (e.g., InternetGatewayAttachment) is created
     # However, AWS just takes this as a hint about what should be created first.
     # But what if you have multiple dependencies?
@@ -143,7 +143,7 @@ Resources:
       Domain: vpc
 
   NatGateway2EIP:
-    Type: AWS::EC2::EIP
+    Type: AWS::EC2::EIP # Elastic IP 2
     # DependsOn says don't create until the resource (e.g., InternetGatewayAttachment) is created
     # However, AWS just takes this as a hint about what should be created first.
     # But what if you have multiple dependencies?

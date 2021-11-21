@@ -1,7 +1,7 @@
 [
 	{
 		"ParameterKey": "EnvironmentName",
-		"ParameterValue": "UJ-UdacityProject2"
+		"ParameterValue": "UJ-Udacity-Capstone"
 	},
 	{
 		"ParameterKey": "VpcCIDR",
