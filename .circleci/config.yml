@@ -23,7 +23,7 @@ commands:
     description: Destroy docker image
     parameters:
       # Add parameter here
-      workflow_id:
+      docker_image_id:
         type: string
     steps:
       - run:
@@ -171,14 +171,17 @@ workflows:
 
       - build_and_test_app_image:
           requires: [test]
-
+      - hold:
+          type: approval # Manual you approve before pushing to docker/ecr repository
+      - upload_image:
+          requires: [build_and_test_dagster_image, build_and_test_app_image]
       - deploy_to_repository:
           requires: [build_and_test_dagster_image, build_and_test_app_image]
           filters:
             branches:
               only: [main, develop]
       # END OF CONTINUOUS INTEGRATION
-      
+
       # - deploy_infrastucture:
       #     requires: [build_upload_docker_image]
       #     filters:
