@@ -126,14 +126,38 @@ jobs:
             echo "implement tests and move to it's own job"
       #- slack/notify # I need to add a SLACK TOKEN to enable this.
 
-
-  build_and_upload_docker_image:
+  build_and_test_dagster_image:
     docker:
       - image: cimg/python:3.9.7
 
     steps:
       - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "pyproject.toml" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+  
+  build_and_test_app_image:
+    docker:
+      - image: cimg/python:3.9.7
+    steps: 
+      - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "pyproject.toml" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
 
+  deploy_to_repository:
+    docker:
+      - image: cimg/python:3.9.7
+    steps: 
+      - checkout
+  # End of Continuous Integration
+
+# Workflows
+# ----------------------
 workflows:
   default:
     jobs:
@@ -142,9 +166,19 @@ workflows:
       - test:
           requires: [lint]
 
-      # - build_and_upload_docker_image:
-      #    requires: [test]
+      - build_and_test_dagster_image:
+          requires: [test]
 
+      - build_and_test_app_image:
+          requires: [test]
+
+      - deploy_to_repository:
+          requires: [build_and_test_dagster_image, build_and_test_app_image]
+          filters:
+            branches:
+              only: [main, develop]
+      # END OF CONTINUOUS INTEGRATION
+      
       # - deploy_infrastucture:
       #     requires: [build_upload_docker_image]
       #     filters:

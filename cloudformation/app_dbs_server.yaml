@@ -18,7 +18,7 @@ Parameters:
       - "t2.micro" 
       - "t3.medium" 
       - "m1.small" 
-      - "m1.large"
+      - "t3.small"
   
   JumpBoxKeyNameParameter:
     Type: "String"
@@ -29,8 +29,13 @@ Parameters:
     Type: "String"
     Description: Personal Ips that are allowed to access the JumpBox
 
+  DBEngineVersion:
+    Type: "String"
+    Default: 13.5 # Main try 14.1
+    Description: Personal Ips that are allowed to access the JumpBox
+
   AppDBInstanceID:
-    Default: appdbinstanceid
+    Default: appDB-instanceID
     Description: Application database instance id
     Type: String
     MinLength: '1'
@@ -40,28 +45,20 @@ Parameters:
       Must begin with a letter and must not end with a hyphen or contain two
       consecutive hyphens.
   
+  AppDBInstanceClass:
+    Default: db.t4g.micro # or db.t3.micro
+    Description: DB instance class
+    Type: String
+    ConstraintDescription: Must select a valid DB instance type.
+
   AppDBName:
-    Default: appDB
+    Default: aurora-postgresql-appDB
     Description: Name for the application Database
     Type: String
     MinLength: '1'
     MaxLength: '64'
     AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
     ConstraintDescription: Must begin with a letter and contain only alphanumeric characters.
-  
-  AppDBInstanceClass:
-    Default: db.m5.large
-    Description: DB instance class for appication database
-    Type: String
-    ConstraintDescription: Must select a valid DB instance type.
-  
-  AppDBAllocatedStorage:
-    Default: '50'
-    Description: The size of the application database (GiB)
-    Type: Number
-    MinValue: '20'
-    MaxValue: '65536'
-    ConstraintDescription: must be between 20 and 65536 GiB.
   
   AppDBUsername:
     NoEcho: 'true'
@@ -75,58 +72,6 @@ Parameters:
   AppDBPassword:
     NoEcho: 'true'
     Description: Password Application Postgres Database access
-    Type: String
-    MinLength: '8'
-    MaxLength: '41'
-    AllowedPattern: '[a-zA-Z0-9]*'
-    ConstraintDescription: must contain only alphanumeric characters.
-
-  AnalyticsDBInstanceID:
-    Default: AnalyticsDBInstance
-    Description: My database instance
-    Type: String
-    MinLength: '1'
-    MaxLength: '63'
-    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
-    ConstraintDescription: >-
-      Must begin with a letter and must not end with a hyphen or contain two
-      consecutive hyphens.
-  
-  AnalyticsDBName:
-    Default: appDB
-    Description: Database for application
-    Type: String
-    MinLength: '1'
-    MaxLength: '64'
-    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
-    ConstraintDescription: Must begin with a letter and contain only alphanumeric characters.
-  
-  AnalyticsDBInstanceClass:
-    Default: db.m5.large
-    Description: DB instance class
-    Type: String
-    ConstraintDescription: Must select a valid DB instance type.
-  
-  AnalyticsDBAllocatedStorage:
-    Default: '50'
-    Description: The size of the database (GiB)
-    Type: Number
-    MinValue: '20'
-    MaxValue: '65536'
-    ConstraintDescription: must be between 20 and 65536 GiB.
-  
-  AnalyticsDBUsername:
-    NoEcho: 'true'
-    Description: Username for Analytics Postgres database access
-    Type: String
-    MinLength: '1'
-    MaxLength: '16'
-    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
-    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
-  
-  AnalyticsDBPassword:
-    NoEcho: 'true'
-    Description: Password to Postgres analytics database
     Type: String
     MinLength: '8'
     MaxLength: '41'
@@ -150,21 +95,10 @@ Resources:
           CidrIp:
             Fn::ImportValue:
               !Sub ${EnvironmentName}-VpcCIDR # Only for ids in VPC
-  
-  AnalyticsDBSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties: 
-      GroupDescription: Security group for application database
-      VpcId: 
-        Fn::ImportValue:
-            !Sub "${EnvironmentName}-VPCID"
-      SecurityGroupIngress: 
         - IpProtocol: tcp
           FromPort: 5432 # This is port for SSH
           ToPort: 5432
-          #CidrIp: 0.0.0.0/0 # Wild card for testing
-          CidrIp: PersonalIPParameter # My Personal IP
-        # Add DBT IP as another ingress allowed
+          CidrIp: !Ref PersonalIPParameter # From my personal ip
 
   # Will probably make this security group in the console, so that my ip stays private.
   PersonalSSHSecGroup:
@@ -177,11 +111,6 @@ Resources:
         Fn::ImportValue:
             !Sub "${EnvironmentName}-VPCID"
       SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 80 # Port 80 is for internet traffic, HTTP. Port 443 is for HTTPS
-          ToPort: 80
-          CidrIp: PersonalIPParameter #My personal
-
         - IpProtocol: tcp
           FromPort: 22 # This is port for SSH
           ToPort: 22
@@ -222,7 +151,35 @@ Resources:
         - Key: "Purpose"
           Value: "Bastion host (aka. JumpBox)"
         - Key: "Project"
-          Value: "Udacity Project 2 - IAC"
+          Value: "Udacity Project Capstone"
+  
+  # General Postgres Database (cheaper)
+  # -----------------------------------------------
+  # In reality I would have two different databases. One for analytics and one for the application
+  # However, I am going to combine to reduce costs.        
+  AppDB:
+    Type: 'AWS::RDS::DBInstance'
+    Properties:
+      DBInstanceIdentifier: !Ref AppDBInstanceID
+      DBName: !Ref AppDBName
+      Engine: postgresql
+      EngineVersion: !Ref DBEngineVersion
+      MasterUsername: !Ref AppDBUsername #Not sure if I need this but will keep
+      MasterUserPassword: !Ref AppDBPassword
+      PubliclyAccessible: true # FOR TESTING true, but will be false when done
+      DBInstanceClass: !Ref AppDBInstanceClass
+      AutoMinorVersionUpgrade: true
+      VPCSecurityGroups:
+        - !Ref AppDBSecurityGroup
+      Tags:
+        - Key: "Name"
+          Value: !Ref AppDBName
+        - Key: "Purpose"
+          Value: "Holds analytics and application data"
+        - Key: "Project"
+          Value: "Udacity Project Capstone"
+        - Key: "Notes"
+          Value: "In the future, will separate into two different databases (application and analytics)"
 
   
   
