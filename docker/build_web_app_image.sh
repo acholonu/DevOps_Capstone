@@ -38,16 +38,8 @@ echo "URL = $URL"
 if curl $URL | grep 'Hello World'
 then
     echo "SUCCESS: Connected to Docker host instance: $URL"
+    return 0
 else
     echo "FAILURE: Failed to connect to backend EC2 instance: $URL"
     return 1
 fi
-
-# Cleanup
-# -------
-docker stop $2 # Stop Container
-docker rm $2 # remove container
-docker rmi web_flask_app:$1 # remove image
-
-return 0
-    

@@ -43,11 +43,3 @@ else
     echo "FAILURE: Failed to connect to backend EC2 instance: $URL"
     return 1
 fi
-
-# Cleanup
-# -------
-docker stop $2 # Stop Container
-docker rm $2 # remove container
-docker rmi dagster_app:$1 # remove image
-
-return 0
