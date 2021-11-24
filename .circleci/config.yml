@@ -23,14 +23,21 @@ commands:
     description: Destroy docker image
     parameters:
       # Add parameter here
-      docker_image_id:
+      docker_image_tag:
         type: string
+        default: latest
+      docker_container_name:
+        type: string
+        default: NONE
     steps:
+      - checkout
       - run:
           name: Destroy docker image
           when: on_fail
           command: |
             # Your code here
+            ./docker/cleanup_docker_image.sh <<parameter.docker_image_tag>> <<parameter.docker_container_name>>
+
 
   # Function 3
   destroy-environment:
@@ -48,14 +55,7 @@ commands:
             # Use for roll back
             # Delete any infrastructure created.
 
-            #echo s3://udapeople-<<parameters.workflow_id>>/
-            #echo uda-frontend-stack-<<parameters.workflow_id>>
-            
-            #aws s3 rm --recursive s3://udapeople-<<parameters.workflow_id>>/
-            #aws s3 rb s3://udapeople-<<parameters.workflow_id>> --force
-            #aws cloudformation delete-stack --stack-name "uda-frontend-stack-<<parameters.workflow_id>>"
-            #aws cloudformation delete-stack --stack-name "uda-backend-stack-<<parameters.workflow_id>>"
-            #aws cloudformation delete-stack --stack-name uda-prometheus-server-stack
+            aws cloudformation delete-stack --stack-name "dagster-network-stack-<<parameters.workflow_id>>"
 
 jobs:
   lint:
@@ -102,7 +102,8 @@ jobs:
 
       #- slack/notify # I need to add a SLACK TOKEN to enable this.
   
-  test:
+  # Making sure unittest pass
+  test_code:
     docker: 
       # This image has poetry, pyenv, pip, pipenv, and python 3.10 pre-installed
       # https://hub.docker.com/r/cimg/python
@@ -111,7 +112,6 @@ jobs:
     steps:
       - checkout
       # Use the chown command to grant CircleCI access to dependency locations
-      - run: sudo chown -R circleci:circleci /usr/local/bin
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "pyproject.toml" }}
@@ -126,7 +126,8 @@ jobs:
             echo "implement tests and move to it's own job"
       #- slack/notify # I need to add a SLACK TOKEN to enable this.
 
-  build_and_test_dagster_image:
+  # Build container and make sure browser test passes
+  build_and_test_image:
     docker:
       - image: cimg/python:3.9.7
 
@@ -138,7 +139,8 @@ jobs:
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
   
-  build_and_test_app_image:
+  # Upload container to repository
+  upload_image:
     docker:
       - image: cimg/python:3.9.7
     steps: 
@@ -148,13 +150,7 @@ jobs:
           - v1-dependencies-{{ checksum "pyproject.toml" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
-
-  deploy_to_repository:
-    docker:
-      - image: cimg/python:3.9.7
-    steps: 
-      - checkout
-  # End of Continuous Integration
+  # End of Continuous Integration, Start of Continuous Delivery
 
 # Workflows
 # ----------------------
@@ -163,27 +159,28 @@ workflows:
     jobs:
       - lint
 
-      - test:
-          requires: [lint]
-
-      - build_and_test_dagster_image:
-          requires: [test]
-
-      - build_and_test_app_image:
-          requires: [test]
-      - hold:
-          type: approval # Manual you approve before pushing to docker/ecr repository
-      - upload_image:
-          requires: [build_and_test_dagster_image, build_and_test_app_image]
-      - deploy_to_repository:
-          requires: [build_and_test_dagster_image, build_and_test_app_image]
+      - test_code
+      
+      - build_and_test_image:
+          requires: [lint, test_code]
           filters:
             branches:
-              only: [main, develop]
-      # END OF CONTINUOUS INTEGRATION
+              only: [develop, main]
 
+      # Manually approve before pushing to docker/ecr repository
+      #- hold:
+      #    type: approval
+
+      - upload_image:
+          requires: [build_and_test_image]
+
+      # END OF CONTINUOUS INTEGRATION, START CONTINUOUS DELIVERY
+      
+      # Want everything in my VPC, so deploying aws infrastructure
       # - deploy_infrastucture:
-      #     requires: [build_upload_docker_image]
+      #     requires: [upload_image]
       #     filters:
       #       branches:
       #         only: [main]
+
+      # Create EKS cluster (if not already created)

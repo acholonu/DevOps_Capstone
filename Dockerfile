@@ -32,4 +32,5 @@ WORKDIR /opt/dagster/app
 
 EXPOSE 3000
 
+# Opening the Dagster UI
 ENTRYPOINT ["dagit", "-h", "0.0.0.0", "-p", "3000"]

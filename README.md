@@ -48,7 +48,7 @@ Simple Flask app that prints backend results to screen.
 - [Database Security](https://docs.oracle.com/cd/B13789_01/network.101/b10773/apdvntro.htm)
 - [Creating a Jumpbox](https://aws.amazon.com/premiumsupport/knowledge-center/rds-connect-ec2-bastion-host/)
 
-## Notes
+## Notes to Self
 
 - To check path of poetry environment use the command `poetry env info`.  My path is currently located at /~/Library/Caches/pypoetry/virtualenvs/capstone-XWfwnle5-py3.10.  So to reactivate this virtual environment I would use:
   - `source ~/Library/Caches/pypoetry/virtualenvs/capstone-XWfwnle5-py3.10 activate`
@@ -56,3 +56,4 @@ Simple Flask app that prints backend results to screen.
   - <https://githubmemory.com/repo/hadolint/hadolint/issues/724>
   - <https://github.com/hadolint/hadolint/wiki/DL4006>
 - The pylintrc file is the configuration file for the pylint package.  I generated this config file typing the following command `pylint --generate-rcfile > pylintrc`. More information can be found here: <https://pylint.pycqa.org/en/latest/user_guide/options.html>.
+- **Date 11/24/2021** - I really should separate these two application (Dagster and Flask app).  They should each have their own work flow and repository.  Then I would not be duplicating so much of my CI/CD.  Also, it would allow me to more easily explore where I which environment I want to deploy process too. I will continue with Dagster. You need a repository for each thing you want to deploy.
