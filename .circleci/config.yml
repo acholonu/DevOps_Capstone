@@ -130,6 +130,7 @@ jobs:
       - run:
           name: Run dagster tests
           command: |
+            . capstone/bin/activate # Why would I need to do this again?
             make test
       #- slack/notify # I need to add a SLACK TOKEN to enable this.
 
@@ -216,7 +217,7 @@ workflows:
           requires: [lint] # I need the dependencies to be created first
       
       - build_and_test_image:
-          requires: [lint, test_code]
+          requires: [test_code]
           filters:
             branches:
               only: [develop, main]
