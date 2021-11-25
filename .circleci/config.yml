@@ -73,8 +73,8 @@ jobs:
       - run: sudo chown -R circleci:circleci /usr/local/bin
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}
-          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-{{ checksum "pyproject.toml" }}
+          # fallback to using the latest cache if no exact match is found, so checksum failed
           - v1-dependencies-
       - run:
           name: Install Tools & Dependencies
@@ -97,11 +97,10 @@ jobs:
             make lint
 
       - save_cache:
-          name: Save python virtualenv
-          paths:
-            - capstone
-
+          name: Save python virtualenv dependencies
           key: v1-dependencies-{{ checksum "pyproject.toml" }}
+          paths:
+            - /usr/local/bin # Binaries of dependencies
 
       #- slack/notify # I need to add a SLACK TOKEN to enable this.
   
@@ -116,12 +115,16 @@ jobs:
       # Use the chown command to grant CircleCI access to dependency locations
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}
+          - v1-dependencies-{{ checksum "pyproject.toml" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
-      # run test
       - run:
-          name: run dagster tests
+          name: Show installed packages
+          command: |
+            pip list
+
+      - run:
+          name: Run dagster tests
           command: |
             make test
       #- slack/notify # I need to add a SLACK TOKEN to enable this.
