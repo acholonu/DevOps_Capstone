@@ -101,6 +101,7 @@ jobs:
           key: v1-dependencies-{{ checksum "pyproject.toml" }}
           paths:
             - /usr/local/bin # Binaries of dependencies
+            - capstone
 
       #- slack/notify # I need to add a SLACK TOKEN to enable this.
   
@@ -118,9 +119,12 @@ jobs:
           - v1-dependencies-{{ checksum "pyproject.toml" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
-      - run:
-          name: Show installed packages
+    
+      - run: 
+          name: Activate environment
           command: |
+            . capstone/bin/activate
+            echo -e "VIRTUAL_ENV=${VIRTUAL_ENV}\n"
             pip list
 
       - run:
@@ -208,7 +212,8 @@ workflows:
     jobs:
       - lint
 
-      - test_code
+      - test_code:
+          requires: [lint] # I need the dependencies to be created first
       
       - build_and_test_image:
           requires: [lint, test_code]
