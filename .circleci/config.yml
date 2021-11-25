@@ -127,10 +127,18 @@ jobs:
       #- slack/notify # I need to add a SLACK TOKEN to enable this.
 
   # Build container and make sure browser test passes
+  # More about URL servers
   build_and_test_image:
     docker:
-      - image: cimg/python:3.9.7
-
+      # Want google chrome to already be installed for testing
+      - image: cimg/python:3.9.7-browsers
+        environment:
+          DATABASE_URL: postgresql://root@localhost/circle_test?sslmode=disable
+      - image: circleci/postgres:9.6.2 # an example of how to specify a service container
+        environment:
+          POSTGRES_USER: root
+          POSTGRES_DB: circle_test
+          POSTGRES_PASSWORD: ""
     steps:
       - checkout
       - restore_cache:
@@ -138,6 +146,26 @@ jobs:
           - v1-dependencies-{{ checksum "pyproject.toml" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
+      - run: 
+          name: Build Image
+          command: |
+            # Your stack command code here
+            echo "Building image..."
+      - run:
+          name: Download Selenium
+          command: |
+            url -O https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.0.jar
+            pip install selenium
+      - run:
+          name: Start Selenium
+          command: |
+            java -jar selenium-server-4.1.0.jar -log test-reports/selenium.log
+          background: true
+      - run: 
+          name: Test Dagster Site
+          command: |
+            # Smoke Test for Dagster Site
+            echo "Starting smoke test..."
   
   # Upload container to repository
   upload_image:
@@ -150,7 +178,25 @@ jobs:
           - v1-dependencies-{{ checksum "pyproject.toml" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
+      - run: 
+          name: Upload Image
+          command: |
+            # Your stack command code here
+            echo "Upload image..."
   # End of Continuous Integration, Start of Continuous Delivery
+  
+  deploy_network_infrastructure:
+    docker:
+      - image: cimg/python:3.9.7
+    steps: 
+      - checkout
+      - aws-cli/install:
+          override-installed: true
+      - run: 
+          name: Deploy stack
+          command: |
+            # Your stack command code here
+            echo "Deploying stack..."
 
 # Workflows
 # ----------------------

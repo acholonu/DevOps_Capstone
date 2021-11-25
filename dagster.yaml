@@ -1,0 +1,53 @@
+# scheduler:
+#   module: dagster_cron.cron_scheduler
+#   class: SystemCronScheduler
+
+event_log_storage:
+  module: dagster_postgres.event_log
+  class: PostgresEventLogStorage
+  config:
+    postgres_db:
+      username:
+        env: DAGSTER_DATABASE_USER
+      password:
+        env: DAGSTER_DATABASE_PASSWORD
+      hostname:
+        env: DAGSTER_DATABASE_HOST
+      db_name:
+        env: DAGSTER_DATABASE
+      port:
+        env: DAGSTER_DATABASE_PORT
+
+
+run_storage:
+  module: dagster_postgres.run_storage
+  class: PostgresRunStorage
+  config:
+    postgres_db:
+      username:
+        env: DAGSTER_DATABASE_USER
+      password:
+        env: DAGSTER_DATABASE_PASSWORD
+      hostname:
+        env: DAGSTER_DATABASE_HOST
+      db_name:
+        env: DAGSTER_DATABASE
+      port:
+        env: DAGSTER_DATABASE_PORT
+
+
+schedule_storage:
+  module: dagster_postgres.schedule_storage
+  class: PostgresScheduleStorage
+  config:
+    postgres_db:
+      username:
+        env: DAGSTER_DATABASE_USER
+      password:
+        env: DAGSTER_DATABASE_PASSWORD
+      hostname:
+        env: DAGSTER_DATABASE_HOST
+      db_name:
+        env: DAGSTER_DATABASE
+      port:
+        env: DAGSTER_DATABASE_PORT

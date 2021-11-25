@@ -57,3 +57,4 @@ Simple Flask app that prints backend results to screen.
   - <https://github.com/hadolint/hadolint/wiki/DL4006>
 - The pylintrc file is the configuration file for the pylint package.  I generated this config file typing the following command `pylint --generate-rcfile > pylintrc`. More information can be found here: <https://pylint.pycqa.org/en/latest/user_guide/options.html>.
 - **Date 11/24/2021** - I really should separate these two application (Dagster and Flask app).  They should each have their own work flow and repository.  Then I would not be duplicating so much of my CI/CD.  Also, it would allow me to more easily explore where I which environment I want to deploy process too. I will continue with Dagster. You need a repository for each thing you want to deploy.
+- [Something to help with dagster.yaml file](https://github.com/dagster-io/dagster/issues/3079)
