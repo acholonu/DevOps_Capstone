@@ -2,10 +2,13 @@ version: 2.1
 
 # Think of orbs as libraries or packages for CircleCI
 orbs:
-  slack: circleci/slack@4.4.4
-  aws-cli: circleci/aws-cli@2.0.3
-  aws-eks: circleci/aws-eks@0.2.3
-  kubernetes: circleci/kubernetes@0.4.0
+  slack: circleci/slack@4.5.0
+  aws-cli: circleci/aws-cli@2.0.6
+  aws-eks: circleci/aws-eks@1.1.0
+  aws-ecr: circleci/aws-ecr@7.3.0
+  aws-sam: circleci/aws-sam-serverless@3.1.0
+  browser-tools: circleci/browser-tools@1.2.3
+  #kubernetes: circleci/kubernetes@0.12.1
 
 # These are custom functions that I use in other jobs
 commands:
@@ -23,14 +26,21 @@ commands:
     description: Destroy docker image
     parameters:
       # Add parameter here
-      workflow_id:
+      docker_image_tag:
         type: string
+        default: latest
+      docker_container_name:
+        type: string
+        default: NONE
     steps:
+      - checkout
       - run:
           name: Destroy docker image
           when: on_fail
           command: |
             # Your code here
+            ./docker/cleanup_docker_image.sh <<parameter.docker_image_tag>> <<parameter.docker_container_name>>
+
 
   # Function 3
   destroy-environment:
@@ -48,14 +58,7 @@ commands:
             # Use for roll back
             # Delete any infrastructure created.
 
-            #echo s3://udapeople-<<parameters.workflow_id>>/
-            #echo uda-frontend-stack-<<parameters.workflow_id>>
-            
-            #aws s3 rm --recursive s3://udapeople-<<parameters.workflow_id>>/
-            #aws s3 rb s3://udapeople-<<parameters.workflow_id>> --force
-            #aws cloudformation delete-stack --stack-name "uda-frontend-stack-<<parameters.workflow_id>>"
-            #aws cloudformation delete-stack --stack-name "uda-backend-stack-<<parameters.workflow_id>>"
-            #aws cloudformation delete-stack --stack-name uda-prometheus-server-stack
+            aws cloudformation delete-stack --stack-name "dagster-network-stack-<<parameters.workflow_id>>"
 
 jobs:
   lint:
@@ -71,7 +74,7 @@ jobs:
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "pyproject.toml" }}
-          # fallback to using the latest cache if no exact match is found
+          # fallback to using the latest cache if no exact match is found, so checksum failed
           - v1-dependencies-
       - run:
           name: Install Tools & Dependencies
@@ -94,20 +97,20 @@ jobs:
             make lint
 
       - save_cache:
-          name: Save python virtualenv
-          paths:
-            - capstone
-
+          name: Save python virtualenv dependencies
           key: v1-dependencies-{{ checksum "pyproject.toml" }}
+          paths:
+            - /usr/local/bin # Binaries of dependencies
+            - capstone
 
       #- slack/notify # I need to add a SLACK TOKEN to enable this.
   
-  test:
+  # Making sure unittest pass
+  test_code:
     docker: 
       # This image has poetry, pyenv, pip, pipenv, and python 3.10 pre-installed
       # https://hub.docker.com/r/cimg/python
       - image: cimg/python:3.9.7
-
     steps:
       - checkout
       # Use the chown command to grant CircleCI access to dependency locations
@@ -117,36 +120,126 @@ jobs:
           - v1-dependencies-{{ checksum "pyproject.toml" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
-      # run test
-      - run:
-          name: run dagster tests
+    
+      - run: 
+          name: Activate environment
           command: |
-            # Your code here.
-            # @@@ I would put this in its own job
-            echo "implement tests and move to it's own job"
+            . capstone/bin/activate
+            echo -e "VIRTUAL_ENV=${VIRTUAL_ENV}\n"
+            pip list
+
+      # I have to activate the virtual environment to get his to work.
+      - run:
+          name: Run dagster tests
+          command: |
+            . capstone/bin/activate # Why would I need to do this again?
+            make test
       #- slack/notify # I need to add a SLACK TOKEN to enable this.
 
-
-  build_and_upload_docker_image:
+  # Build container and make sure browser test passes
+  # More about URL servers
+  build_and_test_image:
     docker:
-      - image: cimg/python:3.9.7
-
+      # Want google chrome to already be installed for testing
+      - image: cimg/python:3.9.7-browsers
+        environment:
+          DATABASE_URL: postgresql://root@localhost/circle_test?sslmode=disable
+      - image: circleci/postgres:9.6.2 # an example of how to specify a service container
+        environment:
+          POSTGRES_USER: root
+          POSTGRES_DB: circle_test
+          POSTGRES_PASSWORD: ""
     steps:
       - checkout
+      - run: sudo chown -R circleci:circleci /usr/local/bin
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "pyproject.toml" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+      - run: 
+          name: Build Image
+          command: |
+            # Your stack command code here
+            echo "Building image..."
+      - run:
+          name: Download Selenium
+          command: |
+            url -O https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.0.jar
+            pip install selenium
+      - run:
+          name: Start Selenium
+          command: |
+            java -jar selenium-server-4.1.0.jar -log test-reports/selenium.log
+          background: true
+      - run: 
+          name: Test Dagster Site
+          command: |
+            # Smoke Test for Dagster Site
+            echo "Starting smoke test..."
+  
+  # Upload container to repository
+  upload_image:
+    docker:
+      - image: cimg/python:3.9.7
+    steps: 
+      - checkout
+      - run: sudo chown -R circleci:circleci /usr/local/bin
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "pyproject.toml" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+      - run: 
+          name: Upload Image
+          command: |
+            # Your stack command code here
+            echo "Upload image..."
+  # End of Continuous Integration, Start of Continuous Delivery
+  
+  deploy_network_infrastructure:
+    docker:
+      - image: cimg/python:3.9.7
+    steps: 
+      - checkout
+      - aws-cli/install:
+          override-installed: true
+      - run: 
+          name: Deploy stack
+          command: |
+            # Your stack command code here
+            echo "Deploying stack..."
 
+# Workflows
+# ----------------------
 workflows:
   default:
     jobs:
       - lint
 
-      - test:
-          requires: [lint]
+      - test_code:
+          requires: [lint] # I need the dependencies to be created first
+      
+      - build_and_test_image:
+          requires: [test_code]
+          filters:
+            branches:
+              only: [develop, main]
 
-      # - build_and_upload_docker_image:
-      #    requires: [test]
+      # Manually approve before pushing to docker/ecr repository
+      #- hold:
+      #    type: approval
 
+      - upload_image:
+          requires: [build_and_test_image]
+
+      # END OF CONTINUOUS INTEGRATION, START CONTINUOUS DELIVERY
+      
+      # Want everything in my VPC, so deploying aws infrastructure
       # - deploy_infrastucture:
-      #     requires: [build_upload_docker_image]
+      #     requires: [upload_image]
       #     filters:
       #       branches:
       #         only: [main]
+
+      # Create EKS cluster (if not already created)
