@@ -59,3 +59,4 @@ Simple Flask app that prints backend results to screen.
 - **Date 11/24/2021** - I really should separate these two application (Dagster and Flask app).  They should each have their own work flow and repository.  Then I would not be duplicating so much of my CI/CD.  Also, it would allow me to more easily explore where I which environment I want to deploy process too. I will continue with Dagster. You need a repository for each thing you want to deploy.
 - [Something to help with dagster.yaml file](https://github.com/dagster-io/dagster/issues/3079)
 - [Pytest Coverage](https://breadcrumbscollector.tech/how-to-use-code-coverage-in-python-with-pytest/)
+- [Wget for downloading content to linux](https://linuxize.com/post/wget-command-examples/)

@@ -163,10 +163,12 @@ jobs:
             # Your stack command code here
             echo "Building image..."
       - run:
-          name: Download Selenium
+          name: Download Selenium Server
           command: |
-            url -O https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.0.jar
-            pip install selenium
+            # sudo apt install wget # If not already installed uncomment
+            #url -O https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.0.jar
+            wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.0.jar
+            
       - run:
           name: Start Selenium
           command: |
