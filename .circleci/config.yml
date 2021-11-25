@@ -127,6 +127,7 @@ jobs:
             echo -e "VIRTUAL_ENV=${VIRTUAL_ENV}\n"
             pip list
 
+      # I have to activate the virtual environment to get his to work.
       - run:
           name: Run dagster tests
           command: |
