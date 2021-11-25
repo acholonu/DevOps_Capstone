@@ -114,6 +114,7 @@ jobs:
     steps:
       - checkout
       # Use the chown command to grant CircleCI access to dependency locations
+      - run: sudo chown -R circleci:circleci /usr/local/bin
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "pyproject.toml" }}
@@ -150,6 +151,7 @@ jobs:
           POSTGRES_PASSWORD: ""
     steps:
       - checkout
+      - run: sudo chown -R circleci:circleci /usr/local/bin
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "pyproject.toml" }}
@@ -182,6 +184,7 @@ jobs:
       - image: cimg/python:3.9.7
     steps: 
       - checkout
+      - run: sudo chown -R circleci:circleci /usr/local/bin
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "pyproject.toml" }}
