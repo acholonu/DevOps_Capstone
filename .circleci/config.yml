@@ -23,7 +23,7 @@ commands:
 
   # Function 2
   destroy-docker-image:
-    description: Destroy docker image
+    description: Destroy Docker Image
     parameters:
       # Add parameter here
       docker_image_tag:
@@ -35,7 +35,7 @@ commands:
     steps:
       - checkout
       - run:
-          name: Destroy docker image
+          name: Destroy Docker Image
           when: on_fail
           command: |
             # Your code here
@@ -44,20 +44,18 @@ commands:
 
   # Function 3
   destroy-environment:
-    description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
+    description: Destroy Cloudformation Stacks Given A Workflow ID.
     parameters:
       # Add parameter here
       workflow_id:
         type: string
     steps:
       - run:
-          name: Destroy environments
+          name: Destroy Environments
           when: on_fail
           command: |
-            # Your code here
             # Use for roll back
             # Delete any infrastructure created.
-
             aws cloudformation delete-stack --stack-name "dagster-network-stack-<<parameters.workflow_id>>"
 
 jobs:
@@ -97,7 +95,7 @@ jobs:
             make lint
 
       - save_cache:
-          name: Save python virtualenv dependencies
+          name: Save Python Virtualenv Dependencies
           key: v1-dependencies-{{ checksum "pyproject.toml" }}
           paths:
             - /usr/local/bin # Binaries of dependencies
@@ -122,7 +120,7 @@ jobs:
           - v1-dependencies-
     
       - run: 
-          name: Activate environment
+          name: Activate Environment
           command: |
             . capstone/bin/activate
             echo -e "VIRTUAL_ENV=${VIRTUAL_ENV}\n"
@@ -130,7 +128,7 @@ jobs:
 
       # I have to activate the virtual environment to get his to work.
       - run:
-          name: Run dagster tests
+          name: Run Dagster Tests
           command: |
             . capstone/bin/activate # Why would I need to do this again?
             make test
@@ -141,14 +139,14 @@ jobs:
   build_and_test_image:
     docker:
       # Want google chrome to already be installed for testing
-      - image: cimg/python:3.9.7-browsers
-        environment:
-          DATABASE_URL: postgresql://root@localhost/circle_test?sslmode=disable
-      - image: circleci/postgres:9.6.2 # an example of how to specify a service container
-        environment:
-          POSTGRES_USER: root
-          POSTGRES_DB: circle_test
-          POSTGRES_PASSWORD: ""
+      - image: cimg/python:3.9.7
+      #   environment:
+      #     DATABASE_URL: postgresql://root@localhost/circle_test?sslmode=disable
+      # - image: circleci/postgres:9.6.2 # an example of how to specify a service container
+      #   environment:
+      #     POSTGRES_USER: root
+      #     POSTGRES_DB: circle_test
+      #     POSTGRES_PASSWORD: ""
     steps:
       - checkout
       - run: sudo chown -R circleci:circleci /usr/local/bin
@@ -157,11 +155,25 @@ jobs:
           - v1-dependencies-{{ checksum "pyproject.toml" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
+      - browser-tools/install-chrome
+      - browser-tools/install-chromedriver
+      - run:
+          name: Check Chrome Install
+          command: |
+            google-chrome --version
+            chromedriver --version
+          
       - run: 
-          name: Build Image
+          name: Build Dagster Image
           command: |
             # Your stack command code here
             echo "Building image..."
+
+      - run: 
+          name: Run Container
+          command: |
+            echo "Starting container"
+
       - run:
           name: Download Selenium Server
           command: |
@@ -224,16 +236,17 @@ workflows:
       
       - build_and_test_image:
           requires: [test_code]
-          filters:
-            branches:
-              only: [develop, main]
 
       # Manually approve before pushing to docker/ecr repository
+      # Maybe for cleanup?
       #- hold:
       #    type: approval
 
       - upload_image:
           requires: [build_and_test_image]
+          filters:
+            branches:
+              only: [develop, main]
 
       # END OF CONTINUOUS INTEGRATION, START CONTINUOUS DELIVERY
       

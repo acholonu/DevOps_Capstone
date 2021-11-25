@@ -47,6 +47,7 @@ Simple Flask app that prints backend results to screen.
 - [Docker and Postgres DB](https://dev.to/andre347/how-to-easily-create-a-postgres-database-in-docker-4moj)
 - [Database Security](https://docs.oracle.com/cd/B13789_01/network.101/b10773/apdvntro.htm)
 - [Creating a Jumpbox](https://aws.amazon.com/premiumsupport/knowledge-center/rds-connect-ec2-bastion-host/)
+- [Selenium Testing](https://www.selenium.dev/documentation/)
 
 ## Notes to Self
 
