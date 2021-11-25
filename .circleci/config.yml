@@ -73,7 +73,7 @@ jobs:
       - run: sudo chown -R circleci:circleci /usr/local/bin
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "pyproject.toml" }}
+          - v1-dependencies-{{ checksum "requirements.txt" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
       - run:
