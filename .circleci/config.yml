@@ -2,10 +2,13 @@ version: 2.1
 
 # Think of orbs as libraries or packages for CircleCI
 orbs:
-  slack: circleci/slack@4.4.4
-  aws-cli: circleci/aws-cli@2.0.3
-  aws-eks: circleci/aws-eks@0.2.3
-  kubernetes: circleci/kubernetes@0.4.0
+  slack: circleci/slack@4.5.0
+  aws-cli: circleci/aws-cli@2.0.6
+  aws-eks: circleci/aws-eks@1.1.0
+  aws-ecr: circleci/aws-ecr@7.3.0
+  aws-sam: circleci/aws-sam-serverless@3.1.0
+  browser-tools: circleci/browswer-tools@1.2.3
+  #kubernetes: circleci/kubernetes@0.12.1
 
 # These are custom functions that I use in other jobs
 commands:
@@ -108,7 +111,6 @@ jobs:
       # This image has poetry, pyenv, pip, pipenv, and python 3.10 pre-installed
       # https://hub.docker.com/r/cimg/python
       - image: cimg/python:3.9.7
-
     steps:
       - checkout
       # Use the chown command to grant CircleCI access to dependency locations
@@ -121,9 +123,7 @@ jobs:
       - run:
           name: run dagster tests
           command: |
-            # Your code here.
-            # @@@ I would put this in its own job
-            echo "implement tests and move to it's own job"
+            make test
       #- slack/notify # I need to add a SLACK TOKEN to enable this.
 
   # Build container and make sure browser test passes
