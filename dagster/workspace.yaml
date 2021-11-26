@@ -2,4 +2,4 @@
 # See our documentation overview on Workspaces: https://docs.dagster.io/overview/repositories-workspaces/workspaces
 load_from:
   #- python_package: dagster_capstone
-  - python_file: hello_world.py
+  - python_file: repository.py
