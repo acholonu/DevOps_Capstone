@@ -19,7 +19,7 @@ create-environment:
 	# Create python virtualenv & package dependency files
 	python3 --version
 	poetry --version
-	python -m venv capstone
+	python -m venv capstone # I named virtual environment capstone
 	. capstone/bin/activate
 	poetry env info
 	
@@ -64,4 +64,4 @@ run-circleci-local:
 	# run circleci on local machine
 	circleci local execute
 
-all: activate_environment install lint test
+all: create_environment poetry-install lint test

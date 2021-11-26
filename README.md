@@ -48,6 +48,7 @@ Simple Flask app that prints backend results to screen.
 - [Database Security](https://docs.oracle.com/cd/B13789_01/network.101/b10773/apdvntro.htm)
 - [Creating a Jumpbox](https://aws.amazon.com/premiumsupport/knowledge-center/rds-connect-ec2-bastion-host/)
 - [Selenium Testing](https://www.selenium.dev/documentation/)
+- [Build A Docker Image in CircleCI](https://circleci.com/blog/how-to-build-a-docker-image-on-circleci-2-0/)
 
 ## Notes to Self
 
@@ -61,3 +62,5 @@ Simple Flask app that prints backend results to screen.
 - [Something to help with dagster.yaml file](https://github.com/dagster-io/dagster/issues/3079)
 - [Pytest Coverage](https://breadcrumbscollector.tech/how-to-use-code-coverage-in-python-with-pytest/)
 - [Wget for downloading content to linux](https://linuxize.com/post/wget-command-examples/)
+- [Permission Denied: execute bash script](https://careerkarma.com/blog/bash-permission-denied-solution/)
+- [Exit from Bash Script on Failure of Command](https://intoli.com/blog/exit-on-errors-in-bash-scripts/)

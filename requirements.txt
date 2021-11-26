@@ -20,6 +20,5 @@ black
 pre-commit
 pdoc3
 mock
-flake8
 Flask
 selenium

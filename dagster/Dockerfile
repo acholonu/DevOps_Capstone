@@ -4,21 +4,12 @@ FROM cimg/python:3.9.7
 #FROM python:3.10.0-slim 
 
 LABEL role "Backend"
+LABEL purpose "Data processing of client schemas and schema changes."
 
-ENV POETRY_VERSION 1.1.11
+RUN sudo mkdir -p /opt/dagster/dagster_home /opt/dagster/app
 
-# Install Poetry
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-RUN set -eu; \
-    curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py \
-        | python - --version "${POETRY_VERSION}"; \
-    find "/root/.local/share/pypoetry" -not -user 0 -exec chown 0:0 '{}' \;;
-
-ENV PATH="/root/.local/bin:$PATH"
-
-RUN mkdir -p /opt/dagster/dagster_home /opt/dagster/app
 RUN pip install -U pip && \
-    pip install dagster-docker dagster-k8s
+    pip install dagster dagit
 
 # Copy code and workspace to /opt/dagster/app
 COPY dagster_capstone/ /opt/dagster/app/

@@ -136,7 +136,26 @@ jobs:
 
   # Build container and make sure browser test passes
   # More about URL servers
-  build_and_test_image:
+  build_image:
+    docker:
+      - image: cimg/python:3.9.7
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.7
+      - run: sudo chown -R circleci:circleci /usr/local/bin
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "pyproject.toml" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+      - run: 
+          name: Build Dagster Image
+          command: |
+            # Your stack command code here
+            echo "Building image..."
+  
+  test_ui:
     docker:
       # Want google chrome to already be installed for testing
       - image: cimg/python:3.9.7
@@ -149,6 +168,9 @@ jobs:
       #     POSTGRES_PASSWORD: ""
     steps:
       - checkout
+      # To enable docker commands need the following step
+      - setup_remote_docker:
+          version: 20.10.7
       - run: sudo chown -R circleci:circleci /usr/local/bin
       - restore_cache:
           keys:
@@ -234,13 +256,8 @@ workflows:
       - test_code:
           requires: [lint] # I need the dependencies to be created first
       
-      - build_and_test_image:
+      - build_image:
           requires: [test_code]
-
-      # Manually approve before pushing to docker/ecr repository
-      # Maybe for cleanup?
-      #- hold:
-      #    type: approval
 
       - upload_image:
           requires: [build_and_test_image]
@@ -258,3 +275,7 @@ workflows:
       #         only: [main]
 
       # Create EKS cluster (if not already created)
+
+      # Manually approve cleanup?
+      #- hold:
+      #    type: approval
