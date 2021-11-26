@@ -2,52 +2,108 @@
 #   module: dagster_cron.cron_scheduler
 #   class: SystemCronScheduler
 
-# event_log_storage:
-#   module: dagster_postgres.event_log
-#   class: PostgresEventLogStorage
+# Allows opting out of Dagster collecting usage statistics.
+# Reference: https://docs.dagster.io/deployment/dagster-instance#telemetry
+telemetry:
+  enabled: false
+
+# Dagster Run Launcher
+# --------------------
+# The run launcher determines where runs are executed. 
+# Reference: https://docs.dagster.io/deployment/dagster-instance#run-launcher
+
+# Default: spawns a new process in the same node as a job's repository location.
+run_launcher:
+  module: dagster.core.launcher
+  class: DefaultRunLauncher
+
+# Allocates a Docker container per run. Spawns a new process in a docker container.
+# run_launcher:
+#   module: dagster_docker
+#   class: DockerRunLauncher
+
+# Kubernetes, allocates a Kubernetes Job per run. 
+# run_launcher:
+#   module: dagster_k8s.launcher
+#   class: K8sRunLauncher
 #   config:
-#     postgres_db:
-#       username:
-#         env: DAGSTER_DATABASE_USER
-#       password:
-#         env: DAGSTER_DATABASE_PASSWORD
-#       hostname:
-#         env: DAGSTER_DATABASE_HOST
-#       db_name:
-#         env: DAGSTER_DATABASE
-#       port:
-#         env: DAGSTER_DATABASE_PORT
+#     service_account_name:
+#       env: PIPELINE_RUN_SERVICE_ACCOUNT
+#     job_image:
+#       env: DAGSTER_IMAGE_NAME
+#     instance_config_map:
+#       env: DAGSTER_INSTANCE_CONFIG_MAP
+#     postgres_password_secret:
+#       env: DAGSTER_POSTGRES_SECRET
 
 
-# run_storage:
-#   module: dagster_postgres.run_storage
-#   class: PostgresRunStorage
-#   config:
-#     postgres_db:
-#       username:
-#         env: DAGSTER_DATABASE_USER
-#       password:
-#         env: DAGSTER_DATABASE_PASSWORD
-#       hostname:
-#         env: DAGSTER_DATABASE_HOST
-#       db_name:
-#         env: DAGSTER_DATABASE
-#       port:
-#         env: DAGSTER_DATABASE_PORT
+# Dagster Application Storage
+# ---------------------------
+# I have to create this storage.  I might use an RDS postgres as I am developing.
+# Then I want to create a database is postgres.  So may have DEV environment (postgres)
+# on my machine.  And PRODUCTION is in the cloud.
+# Reference: https://docs.dagster.io/deployment/dagster-instance#schedule-storage
+event_log_storage:
+  module: dagster_postgres.event_log
+  class: PostgresEventLogStorage
+  config:
+    postgres_db:
+      username:
+        env: DAGSTER_DATABASE_USER
+      password:
+        env: DAGSTER_DATABASE_PASSWORD
+      hostname:
+        env: DAGSTER_DATABASE_HOST
+      db_name:
+        env: DAGSTER_DATABASE
+      port:
+        env: DAGSTER_DATABASE_PORT
 
 
-# schedule_storage:
-#   module: dagster_postgres.schedule_storage
-#   class: PostgresScheduleStorage
-#   config:
-#     postgres_db:
-#       username:
-#         env: DAGSTER_DATABASE_USER
-#       password:
-#         env: DAGSTER_DATABASE_PASSWORD
-#       hostname:
-#         env: DAGSTER_DATABASE_HOST
-#       db_name:
-#         env: DAGSTER_DATABASE
-#       port:
-#         env: DAGSTER_DATABASE_PORT
+run_storage:
+  module: dagster_postgres.run_storage
+  class: PostgresRunStorage
+  config:
+    postgres_db:
+      username:
+        env: DAGSTER_DATABASE_USER
+      password:
+        env: DAGSTER_DATABASE_PASSWORD
+      hostname:
+        env: DAGSTER_DATABASE_HOST
+      db_name:
+        env: DAGSTER_DATABASE
+      port:
+        env: DAGSTER_DATABASE_PORT
+
+
+schedule_storage:
+  module: dagster_postgres.schedule_storage
+  class: PostgresScheduleStorage
+  config:
+    postgres_db:
+      username:
+        env: DAGSTER_DATABASE_USER
+      password:
+        env: DAGSTER_DATABASE_PASSWORD
+      hostname:
+        env: DAGSTER_DATABASE_HOST
+      db_name:
+        env: DAGSTER_DATABASE
+      port:
+        env: DAGSTER_DATABASE_PORT
+
+compute_logs:
+  module: dagster_aws.s3.compute_log_manager
+  class: S3ComputeLogManager
+  config:
+    bucket:
+      env: S3_BUCKET
+    prefix:
+      env: S3_LOG_PREFIX
+
+local_artifact_storage:
+  module: dagster.core.storage.root
+  class: LocalArtifactStorage
+  config:
+    base_dir: "/opt/dagster/local/"
