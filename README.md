@@ -64,3 +64,4 @@ Simple Flask app that prints backend results to screen.
 - [Wget for downloading content to linux](https://linuxize.com/post/wget-command-examples/)
 - [Permission Denied: execute bash script](https://careerkarma.com/blog/bash-permission-denied-solution/)
 - [Exit from Bash Script on Failure of Command](https://intoli.com/blog/exit-on-errors-in-bash-scripts/)
+- [mkdir options](https://www.javatpoint.com/linux-mkdir-p)

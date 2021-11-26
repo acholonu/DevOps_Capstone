@@ -260,7 +260,7 @@ workflows:
           requires: [test_code]
 
       - upload_image:
-          requires: [build_and_test_image]
+          requires: [build_image]
           filters:
             branches:
               only: [develop, main]
