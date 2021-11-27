@@ -28,9 +28,9 @@ Parameters:
   PrivateSubnet1CIDR:
     Description: >
       Defines the IP ranges that exist in this private subnet (private subnet1). Every IP address 
-      in this subnet will start with 10.0.2. This public subnet will be in the first Availability Zone.
+      in this subnet will start with 10.0.1. This public subnet will be in the first Availability Zone.
     Type: String
-    Default: 10.0.2.0/24
+    Default: 10.0.1.0/24
 
 Resources:
   # defining our Virtual Private cloud
@@ -43,9 +43,9 @@ Resources:
       EnableDnsHostnames: true
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName}-Vpc
+          Value: !Sub ${EnvironmentName}-vpc
         - Key: Project
-          Value: Udacity Project 2 - Udagram
+          Value: Capstone
         - Key: Author
           Value: Ugochi Jones
 

@@ -138,22 +138,19 @@ jobs:
   # More about URL servers
   build_image:
     docker:
-      - image: cimg/python:3.9.7
+      #- image: cimg/python:3.9.7
+      - image: docker:20.10.11-git
     steps:
       - checkout
       - setup_remote_docker:
           version: 20.10.7
-      - run: sudo chown -R circleci:circleci /usr/local/bin
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "pyproject.toml" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
       - run: 
           name: Build Dagster Image
           command: |
             # Your stack command code here
             echo "Building image..."
+            cd dagster
+            ./../docker/build_image.sh v0.1.0 dagster-app-${WORKFLOW_ID} Hello
   
   test_ui:
     docker:

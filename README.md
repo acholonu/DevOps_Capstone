@@ -65,3 +65,4 @@ Simple Flask app that prints backend results to screen.
 - [Permission Denied: execute bash script](https://careerkarma.com/blog/bash-permission-denied-solution/)
 - [Exit from Bash Script on Failure of Command](https://intoli.com/blog/exit-on-errors-in-bash-scripts/)
 - [mkdir options](https://www.javatpoint.com/linux-mkdir-p)
+- To execute the environement file use the following commands: `source .env`
