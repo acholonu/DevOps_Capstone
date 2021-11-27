@@ -148,6 +148,12 @@ jobs:
           keys:
             - v1-{{ .Branch }}
       - run:
+          name: Print OS
+          command: |
+            # Check linux operating system of docker container
+            cat /etc/os-release
+  
+      - run:
           name: Load Docker image layer cache
           command: |
             set +o pipefail
@@ -159,7 +165,8 @@ jobs:
             # Your stack command code here
             echo "Building image..."
             cd dagster
-            ./../docker/build_image.sh v0.1.0 true
+            #./../docker/build_image.sh v0.1.0 true
+            docker build --cache-from=dagster_app --tag dagster_app:$1 .
       # # FIX
       # - run:
       #     name: Build application Docker image

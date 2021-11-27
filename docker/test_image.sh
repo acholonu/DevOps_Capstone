@@ -31,7 +31,7 @@ echo "Arguments Received: [\n$1,\n$2,\n$3] "
 # ------------------------------
 # The name of the container ($1).
 if $3 = true then
-    docker run -d --env-file ../.env -p 3000:3000 --name $1 dagster_app
+    docker run -d --env-file .env -p 3000:3000 --name $1 dagster_app
 else
     # Environment variables should be made available through CircleCI
     docker run -d -p 3000:3000 --name $1 dagster_app
