@@ -3,11 +3,10 @@
 # Args:
 # -----
 # $1 = image tag version (e.g., v0.1.0)
+# $2 = Use a cache path
 #
 # How to run
 # ----------
-# ./../docker/build_image.sh v0.1.0
-# or
 # ./../docker/build_image.sh v0.1.0
 
 # Set Script Options
@@ -28,7 +27,11 @@ echo "Arguments Received: [\n$1] "
 # Build Image
 # -----------
 # Run in app folder. So change directory. The Dockerfile should be in the app folder
-docker build --tag dagster_app:$1 .
+# The period (.) at the end is the context
+if $2 = true then
+    docker build --cache-from=dagster_app --tag dagster_app:$1 .
+else
+    docker build --tag dagster_app:$1 .
 
 # Add latest tag to built image
 # -----------------------------

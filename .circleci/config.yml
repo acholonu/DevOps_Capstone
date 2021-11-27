@@ -140,17 +140,44 @@ jobs:
     docker:
       #- image: cimg/python:3.9.7
       - image: docker:20.10.11-git
+    working_directory: ~/project/dagster
     steps:
       - checkout
-      - setup_remote_docker:
-          version: 20.10.7
+      - setup_remote_docker 
+      - restore_cache:
+          keys:
+            - v1-{{ .Branch }}
+      - run:
+          name: Load Docker image layer cache
+          command: |
+            set +o pipefail
+            docker load -i /caches/dagster_app.tar | true
+
       - run: 
           name: Build Dagster Image
           command: |
             # Your stack command code here
             echo "Building image..."
-            cd dagster
-            ./../docker/build_image.sh v0.1.0 dagster-app-${WORKFLOW_ID} Hello
+            ./../docker/build_image.sh v0.1.0 true
+      # # FIX
+      # - run:
+      #     name: Build application Docker image
+      #     command: |
+      #       docker build --cache-from=app -t app .
+      - run:
+          name: Save Docker image layer cache
+          command: |
+            mkdir -p /caches
+            docker save -o /caches/dagster_app.tar dagster_app
+      - save_cache:
+          key: v1-{{ .Branch }}-{{ epoch }}
+          paths:
+            - /caches/app.tar
+      - run:
+          name: Test Dagster Container
+          command: |
+            ./../docker/test_image.sh dagster_app-${CIRCLE_WORKFLOW_ID} Hello false
+          
   
   test_ui:
     docker:

@@ -6,13 +6,15 @@ LABEL role="data-processing"
 LABEL purpose="Data processing of client schemas and schema changes."
 LABEL reference="https://docs.dagster.io/deployment/dagster-instance#compute-log-storage"
 
-RUN sudo mkdir -p /opt/dagster/dagster_home /opt/dagster/app /opt/dagster/local
+RUN mkdir -p /opt/dagster/dagster_home 
+RUN mkdir -p /opt/dagster/app 
+RUN mkdir -p /opt/dagster/local
 
 RUN pip install -U pip && \
     pip install dagster dagit dagster-postgres dagster-aws dagster-k8s
 
 # Copy your code and workspace to /opt/dagster/app
-COPY dagster_capstone/repository.py workspace.yaml /opt/dagster/app/
+COPY workspace.yaml /opt/dagster/app/
 
 # Copy code and workspace to /opt/dagster/app
 COPY dagster_capstone/ /opt/dagster/app/

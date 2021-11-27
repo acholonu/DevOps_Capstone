@@ -49,7 +49,9 @@ test:
 lint:
 	# See local hadolint install instructions:   https://github.com/hadolint/hadolint
 	# This is linter for Dockerfiles.  I am ignoring rules DL3013 & DL3042
-	hadolint --ignore DL3013 --ignore DL3042 dagster/Dockerfile
+	# DL3004 - sudo error that I running into. Separating the mkdir command into different commands fixed
+	# this error.
+	hadolint --ignore DL3013 --ignore DL3042 --ignore DL3059 dagster/Dockerfile
 
 	# This is a linter for Python source code linter: https://www.pylint.org/
 	# This should be run from inside a virtualenv
