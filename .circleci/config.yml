@@ -147,6 +147,7 @@ jobs:
       - restore_cache:
           keys:
             - v1-{{ .Branch }}
+
       - run:
           name: Print OS
           command: |
@@ -165,8 +166,9 @@ jobs:
             # Your stack command code here
             echo "Building image..."
             cd dagster
-            #./../docker/build_image.sh v0.1.0 true
-            docker build --cache-from=dagster_app --tag dagster_app:$1 .
+            TAG="dagster_app:v0.${CIRCLE_WORKFLOW_ID}"
+            echo $TAG
+            docker build --cache-from=dagster_app --tag $TAG .
       # # FIX
       # - run:
       #     name: Build application Docker image
