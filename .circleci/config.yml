@@ -158,6 +158,7 @@ jobs:
           command: |
             # Your stack command code here
             echo "Building image..."
+            cd dagster
             ./../docker/build_image.sh v0.1.0 true
       # # FIX
       # - run:
@@ -172,7 +173,7 @@ jobs:
       - save_cache:
           key: v1-{{ .Branch }}-{{ epoch }}
           paths:
-            - /caches/app.tar
+            - /caches/dagster_app.tar
       - run:
           name: Test Dagster Container
           command: |
