@@ -8,9 +8,9 @@
 #
 # How to run
 # ----------
-# ./../docker/test_image.sh dagster-app-{workflow_id} Hello
+# ./../docker/test_image.sh dagster-app-{CIRCLE_WORKFLOW_ID} Hello false
 # or
-# ./../docker/test_image.sh dagster-app-test Hello
+# ./../docker/test_image.sh dagster-app-test Hello true
 
 # Set Script Options
 # ---------------------------
@@ -25,16 +25,18 @@ trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
 
 # Print Arguments
 # ---------------
-echo "Arguments Received: [\n$1,\n$2,\n$3] "
+echo -e "Arguments Received: [\n$1,\n$2,\n$3]"
 
 # Run a Container in detach mode
 # ------------------------------
 # The name of the container ($1).
-if $3 = true then
+if $3 = true 
+then
     docker run -d --env-file .env -p 3000:3000 --name $1 dagster_app
 else
     # Environment variables should be made available through CircleCI
     docker run -d -p 3000:3000 --name $1 dagster_app
+fi
 
 # List all processes running
 # --------------------------

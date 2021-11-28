@@ -7,7 +7,7 @@
 #
 # How to run
 # ----------
-# ./../docker/build_image.sh v0.1.0
+# ./../docker/build_image.sh v0.1.0 false
 
 # Set Script Options
 # ---------------------------
@@ -22,16 +22,18 @@ trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
 
 # Print Arguments
 # ---------------
-echo "Arguments Received: [\n$1] "
+echo -e "Arguments Received: [\n$1, $2\n] "
 
 # Build Image
 # -----------
 # Run in app folder. So change directory. The Dockerfile should be in the app folder
 # The period (.) at the end is the context
-if $2 = true then
+if $2 = true 
+then
     docker build --cache-from=dagster_app --tag dagster_app:$1 .
 else
     docker build --tag dagster_app:$1 .
+fi 
 
 # Add latest tag to built image
 # -----------------------------
@@ -40,3 +42,8 @@ docker tag dagster_app:$1 dagster_app:latest
 # List images
 # -----------
 docker images
+
+# Scan image
+# ----------
+# Can only use if uploaded
+#docker scan dagster_app:latest

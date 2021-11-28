@@ -157,7 +157,9 @@ jobs:
       - run:
           name: Load Docker image layer cache
           command: |
-            set +o pipefail
+            # The following command says, if you want the command to fail due to an error at any stage 
+            # when pipe(|) output of a command to another command
+            set +o pipefail 
             docker load -i /caches/dagster_app.tar | true
 
       - run: 
