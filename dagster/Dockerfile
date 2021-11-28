@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM cimg/python:3.9.7 
+FROM cimg/python:3.9.7 AS base_dagster
 
 LABEL role="data-processing"
 LABEL purpose="Data processing of client schemas and schema changes."
@@ -13,7 +13,7 @@ LABEL reference="https://docs.dagster.io/deployment/dagster-instance#compute-log
 USER root
 
 RUN pip install -U pip && \
-    pip install dagster dagit dagster-postgres dagster-aws dagster-k8s
+    pip install dagster dagit dagster-graphql dagster-postgres dagster-aws dagster-k8s dagster-docker
 
 RUN useradd build_user && \
     mkdir -p /opt && \
@@ -35,6 +35,12 @@ COPY workspace.yaml /opt/dagster/app/
 COPY dagster_capstone/ /opt/dagster/app/
 
 ENV DAGSTER_HOME=/opt/dagster/dagster_home/
+ENV POSTGRES_USER=$POSTGRES_USER
+ENV POSTGRES_HOST=$POSTGRES_HOST
+ENV POSTGRES_DATABASE=$POSTGRES_DATABASE
+ENV POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+ENV S3_BUCKET=$S3_BUCKET
+ENV S3_LOG_PREFIX=$S3_LOG_PREFIX
 
 # Copy dagster instance YAML to $DAGSTER_HOME
 COPY dagster.yaml /opt/dagster/dagster_home/

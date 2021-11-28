@@ -35,6 +35,7 @@ then
     docker run -d --env-file .env -p 3000:3000 --name $1 dagster_app
 else
     # Environment variables should be made available through CircleCI
+    #docker run -d -p 3000:3000 -e POSTGRES_DATABASE -e POSTGRES_HOST -e POSTGRES_PASSWORD -e POSTGRES_USER --name $1 dagster_app
     docker run -d -p 3000:3000 --name $1 dagster_app
 fi
 

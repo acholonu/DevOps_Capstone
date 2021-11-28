@@ -2,12 +2,12 @@
 # ------------------------------------------
 # Args:
 # -----
-# $1 = image tag version (e.g., v0.1.0)
+# $1 = image tag version (e.g., v1.0)
 # $2 = Use a cache path
 #
 # How to run
 # ----------
-# ./../docker/build_image.sh v0.1.0 false
+# ./../docker/build_image.sh v1.0 false
 
 # Set Script Options
 # ---------------------------

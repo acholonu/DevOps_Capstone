@@ -6,7 +6,7 @@
 
 """
 from dagster import repository
-from dagster_capstone.hello_world import diamond
+from hello_world import diamond
 from dagster_capstone.graphs.say_hello import say_hello_job
 from dagster_capstone.schedules.my_hourly_schedule import my_hourly_schedule
 from dagster_capstone.sensors.my_sensor import my_sensor
