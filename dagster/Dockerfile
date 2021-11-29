@@ -30,7 +30,8 @@ RUN mkdir -p /opt/dagster/dagster_capstone \
     /opt/dagster/local
 
 # Copy your code and workspace to /opt/dagster/app
-COPY workspace.yaml /opt/dagster/dagster_capstone/
+#COPY workspace.yaml /opt/dagster/dagster_capstone/
+COPY workspace.yaml /opt/dagster/
 
 # Copy code and workspace to /opt/dagster/app
 COPY dagster_capstone/ /opt/dagster/dagster_capstone/
@@ -46,7 +47,7 @@ ENV S3_LOG_PREFIX=$S3_LOG_PREFIX
 # Copy dagster instance YAML to $DAGSTER_HOME
 COPY dagster.yaml /opt/dagster/dagster_home/
 
-WORKDIR /opt/dagster/dagster_capstone
+WORKDIR /opt/dagster/
 
 EXPOSE 3000
 # Opening the Dagster UI

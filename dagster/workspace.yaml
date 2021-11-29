@@ -1,5 +1,12 @@
 # Workspaces specify where to find user code in order to load it for Dagit and the Dagster CLI.
 # See our documentation overview on Workspaces: https://docs.dagster.io/overview/repositories-workspaces/workspaces
+# or https://docs.dagster.io/concepts/repositories-workspaces/workspaces#defining-a-workspace
 load_from:
   #- python_package: dagster_capstone
-  - python_file: repository.py
+  #- python_file: repository.py
+  #- relative path from workspace
+  - python_file: 
+      relative_path: dagster_capstone/repository.py
+      working_directory: .
+      attribute: dagster_capstone # name of the function in repository.py, that returns RepositoryDefinition
+      location_name: Tutorial_Repository_Location # Custom name that I give to the repository

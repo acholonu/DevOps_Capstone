@@ -189,7 +189,7 @@ jobs:
           name: Test Dagster Container
           command: |
             cd dagster
-            ./../docker/test_image.sh dagster_app-${CIRCLE_WORKFLOW_ID} Hello false
+            ./../docker/test_image.sh dagster_app-${CIRCLE_WORKFLOW_ID} Dagit false
           
   
   test_ui:
