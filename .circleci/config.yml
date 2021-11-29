@@ -144,10 +144,10 @@ jobs:
       - aws-cli/install
       # Need to deploy to ECR
       - aws-cli/setup:
-          aws-region: $AWS_DEFAULT_REGION
-          aws-access-key-id: AWS_ACCESS_KEY_ID
-          aws-secret-access-key: $AWS_SECRET_ACCESS_KEY
-          profile-name: $AWS_PROFILE_NAME
+          aws-region: ${AWS_DEFAULT_REGION}
+          aws-access-key-id: ${AWS_ACCESS_KEY_ID}
+          aws-secret-access-key: ${AWS_SECRET_ACCESS_KEY}
+          profile-name: ${AWS_PROFILE_NAME}
       - setup_remote_docker 
       - restore_cache:
           keys:
