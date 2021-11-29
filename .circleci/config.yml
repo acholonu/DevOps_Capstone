@@ -5,8 +5,6 @@ orbs:
   slack: circleci/slack@4.5.0
   aws-cli: circleci/aws-cli@2.0.6
   aws-eks: circleci/aws-eks@1.1.0
-  aws-ecr: circleci/aws-ecr@7.3.0
-  aws-sam: circleci/aws-sam-serverless@3.1.0
   browser-tools: circleci/browser-tools@1.2.3
   #kubernetes: circleci/kubernetes@0.12.1
 
@@ -136,13 +134,20 @@ jobs:
 
   # Build container and make sure browser test passes
   # More about URL servers
-  build_image:
+  build-and-deploy-image:
     docker:
       #- image: cimg/python:3.9.7
       - image: docker:20.10.11-git
     working_directory: ~/project/dagster
     steps:
       - checkout
+      - aws-cli/install
+      # Need to deploy to ECR
+      - aws-cli/setup:
+          aws-region: $AWS_DEFAULT_REGION
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: $AWS_SECRET_ACCESS_KEY
+          profile-name: $AWS_PROFILE_NAME
       - setup_remote_docker 
       - restore_cache:
           keys:
@@ -160,7 +165,7 @@ jobs:
             # The following command says, if you want the command to fail due to an error at any stage 
             # when pipe(|) output of a command to another command
             set +o pipefail 
-            docker load -i /caches/dagster_app.tar | true
+            docker load -i /caches/dagster-app.tar | true
 
       - run: 
           name: Build Dagster Image
@@ -168,41 +173,61 @@ jobs:
             # Your stack command code here
             echo "Building image..."
             cd dagster
-            TAG="dagster_app:v0.${CIRCLE_WORKFLOW_ID}"
+            TAG="dagster-app:v1.${CIRCLE_WORKFLOW_ID}"
             echo $TAG
-            docker build --cache-from=dagster_app --tag $TAG .
-      # # FIX
-      # - run:
-      #     name: Build application Docker image
-      #     command: |
-      #       docker build --cache-from=app -t app .
+            docker build --cache-from=dagster-app --tag $TAG .
       - run:
           name: Save Docker image layer cache
           command: |
             mkdir -p /caches
-            docker save -o /caches/dagster_app.tar dagster_app
+            docker save -o /caches/dagster-app.tar dagster-app
       - save_cache:
           key: v1-{{ .Branch }}-{{ epoch }}
           paths:
-            - /caches/dagster_app.tar
+            - /caches/dagster-app.tar
       - run:
           name: Test Dagster Container
           command: |
             cd dagster
-            ./../docker/test_image.sh dagster_app-${CIRCLE_WORKFLOW_ID} Dagit false
+            docker run -d -p 3000:3000 --name dagster-cntr-${CIRCLE_WORKFLOW_ID} dagster-app
+            URL=localhost:3000
+            echo "URL = $URL"
+
+            # Check if can connect
+            if curl $URL
+            then
+                echo "SUCCESS(+): Connected to Dagster UI\n"
+            else
+                echo "FAILURE(-): Failed to connect to Dagster"
+                docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
+                exit 1
+            fi
+
+            # Check if it found relevant word.
+            if curl $URL | grep "Dagit"
+            then
+                echo "SUCCESS(++): found $2 in document: $URL\n"
+                docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
+                exit 0
+            else
+                echo "FAILURE(--): Failed to find $2 in document: $URL"
+                docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
+                exit 1
+            fi
+      - deploy:
+          name: Deploy Image to ECR
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "main" ]; then
+              login="$(aws ecr get-login)"
+              ${login}
+              docker tag dagster-app:v1.${CIRCLE_WORKFLOW_ID} "${AWS_ECR_REPO_URI}/dagster-app:${CIRCLE_SHA1}"
+              docker push "${AWS_ECR_REPO_URI}/dagster-app:${CIRCLE_SHA1}"
+            fi
           
   
   test_ui:
     docker:
-      # Want google chrome to already be installed for testing
       - image: cimg/python:3.9.7
-      #   environment:
-      #     DATABASE_URL: postgresql://root@localhost/circle_test?sslmode=disable
-      # - image: circleci/postgres:9.6.2 # an example of how to specify a service container
-      #   environment:
-      #     POSTGRES_USER: root
-      #     POSTGRES_DB: circle_test
-      #     POSTGRES_PASSWORD: ""
     steps:
       - checkout
       # To enable docker commands need the following step
@@ -252,22 +277,22 @@ jobs:
             echo "Starting smoke test..."
   
   # Upload container to repository
-  upload_image:
-    docker:
-      - image: cimg/python:3.9.7
-    steps: 
-      - checkout
-      - run: sudo chown -R circleci:circleci /usr/local/bin
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "pyproject.toml" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
-      - run: 
-          name: Upload Image
-          command: |
-            # Your stack command code here
-            echo "Upload image..."
+  # upload_image:
+  #   docker:
+  #     - image: cimg/python:3.9.7
+  #   steps: 
+  #     - checkout
+  #     - run: sudo chown -R circleci:circleci /usr/local/bin
+  #     - restore_cache:
+  #         keys:
+  #         - v1-dependencies-{{ checksum "pyproject.toml" }}
+  #         # fallback to using the latest cache if no exact match is found
+  #         - v1-dependencies-
+  #     - run: 
+  #         name: Upload Image
+  #         command: |
+  #           # Your stack command code here
+  #           echo "Upload image..."
   # End of Continuous Integration, Start of Continuous Delivery
   
   deploy_network_infrastructure:
@@ -293,14 +318,8 @@ workflows:
       - test_code:
           requires: [lint] # I need the dependencies to be created first
       
-      - build_image:
+      - build-and-deploy-image:
           requires: [test_code]
-
-      - upload_image:
-          requires: [build_image]
-          filters:
-            branches:
-              only: [develop, main]
 
       # END OF CONTINUOUS INTEGRATION, START CONTINUOUS DELIVERY
       
