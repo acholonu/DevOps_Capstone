@@ -24,15 +24,16 @@ USER build_user
 
 # Want to put all these mkdir (make directory) in one line so that it will be in 1 docker layer
 # Only the command: RUN, COPY, ADD, ENV create layers
-RUN mkdir -p /opt/dagster/app \
+# I am mirroring local file structure to container's file structure
+RUN mkdir -p /opt/dagster/dagster_capstone \
     /opt/dagster/dagster_home \
     /opt/dagster/local
 
 # Copy your code and workspace to /opt/dagster/app
-COPY workspace.yaml /opt/dagster/app/
+COPY workspace.yaml /opt/dagster/dagster_capstone/
 
 # Copy code and workspace to /opt/dagster/app
-COPY dagster_capstone/ /opt/dagster/app/
+COPY dagster_capstone/ /opt/dagster/dagster_capstone/
 
 ENV DAGSTER_HOME=/opt/dagster/dagster_home/
 ENV POSTGRES_USER=$POSTGRES_USER
@@ -45,7 +46,7 @@ ENV S3_LOG_PREFIX=$S3_LOG_PREFIX
 # Copy dagster instance YAML to $DAGSTER_HOME
 COPY dagster.yaml /opt/dagster/dagster_home/
 
-WORKDIR /opt/dagster/app
+WORKDIR /opt/dagster/dagster_capstone
 
 EXPOSE 3000
 # Opening the Dagster UI

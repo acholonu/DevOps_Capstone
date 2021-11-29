@@ -30,14 +30,14 @@ echo -e "Arguments Received: [\n$1, $2\n] "
 # The period (.) at the end is the context
 if $2 = true 
 then
-    docker build --cache-from=dagster_app --tag dagster_app:$1 .
+    docker build --cache-from=dagster_app --tag dagster-app:$1 .
 else
-    docker build --tag dagster_app:$1 .
+    docker build --tag dagster-app:$1 .
 fi 
 
 # Add latest tag to built image
 # -----------------------------
-docker tag dagster_app:$1 dagster_app:latest
+docker tag dagster-app:$1 dagster-app:latest
 
 # List images
 # -----------

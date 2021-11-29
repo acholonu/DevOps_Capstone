@@ -1,2 +1,1 @@
 from .repository import dagster_capstone
-import hello_world
