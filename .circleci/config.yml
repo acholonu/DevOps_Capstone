@@ -136,16 +136,34 @@ jobs:
   # More about URL servers
   build-and-deploy-image:
     docker:
-      #- image: cimg/python:3.9.7
-      - image: docker:20.10.11-git
+      - image: cimg/python:3.9.7
+      #- image: docker:20.10.11-git
     working_directory: ~/project/dagster
     steps:
       - checkout
-      #- aws-cli/install # Works only for python images, need install python
-      - setup_remote_docker 
+      
+      - aws-cli/install # Works only for python images, need install python
+      
+      # Needed to deploy to ECR
+      - aws-cli/setup:
+          aws-region: AWS_DEFAULT_REGION
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          profile-name: AWS_PROFILE_NAME 
+      
       - restore_cache:
           keys:
             - v1-{{ .Branch }}
+
+      - run:
+          name: Install Docker
+          command: |
+             sudo apt-get update
+             sudo apt install docker.io -y
+             sudo snap install docker
+             docker --version
+
+      - setup_remote_docker
 
       - run:
           name: Print Operating System
@@ -154,15 +172,7 @@ jobs:
             cat /etc/os-release
 
       - run:
-          name: Install AWS CLI 2
-          command: |
-            apk add --no-cache python3 py3-pip curl
-            pip3 install --upgrade pip
-            pip3 install --no-cache-dir awscliv2 
-            rm -rf /var/cache/apk/*
-
-      - run:
-          name: Load Docker image layer cache
+          name: Load Docker image Layer Cache
           command: |
             # The following command says, if you want the command to fail due to an error at any stage 
             # when pipe(|) output of a command to another command
@@ -189,6 +199,7 @@ jobs:
           key: v1-{{ .Branch }}-{{ epoch }}
           paths:
             - /caches/dagster-app.tar
+            - /usr/local/bin # Binaries of dependencies
 
       # - run:
       #     name: Test Dagster Container
@@ -223,13 +234,6 @@ jobs:
       #           docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
       #           exit 1
       #       fi
-      
-      # Needed to deploy to ECR
-      - aws-cli/setup:
-          aws-region: AWS_DEFAULT_REGION
-          aws-access-key-id: AWS_ACCESS_KEY_ID
-          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-          profile-name: AWS_PROFILE_NAME
 
       - deploy:
           name: Deploy Image to ECR
