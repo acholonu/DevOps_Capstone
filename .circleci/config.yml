@@ -183,11 +183,11 @@ jobs:
             echo $TAG
             docker build --cache-from=dagster-app --tag $TAG .
 
-      - run:
-          name: Save Docker image layer cache
-          command: |
-            sudo mkdir -p /caches
-            sudo docker save -o /caches/dagster-app.tar dagster-app:v1.${CIRCLE_WORKFLOW_ID}
+      # - run:
+      #     name: Save Docker image layer cache
+      #     command: |
+      #       sudo mkdir -p /caches
+      #       sudo docker save -o /caches/dagster-app.tar dagster-app:v1.${CIRCLE_WORKFLOW_ID}
 
       # - save_cache:
       #     key: v1-{{ .Branch }}-{{ epoch }}
