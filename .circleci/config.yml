@@ -150,10 +150,13 @@ jobs:
           aws-access-key-id: AWS_ACCESS_KEY_ID
           aws-secret-access-key: AWS_SECRET_ACCESS_KEY
           profile-name: AWS_PROFILE_NAME 
+
       - run: sudo chown -R circleci:circleci /usr/local/bin
+
       - restore_cache:
           keys:
-            - v1-{{ .Branch }}
+            - v1-{{ checksum "~/dagster/Dockerfile" }}
+            
       - run:
           name: Install Docker
           command: |
@@ -191,8 +194,8 @@ jobs:
       - run:
           name: Save Docker image layer cache
           command: |
-            mkdir -p /caches
-            docker save -o /caches/dagster-app.tar dagster-app
+            sudo mkdir -p /caches
+            sudo docker save -o /caches/dagster-app.tar dagster-app
 
       - save_cache:
           key: v1-{{ .Branch }}-{{ epoch }}
