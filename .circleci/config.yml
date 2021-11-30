@@ -150,11 +150,10 @@ jobs:
           aws-access-key-id: AWS_ACCESS_KEY_ID
           aws-secret-access-key: AWS_SECRET_ACCESS_KEY
           profile-name: AWS_PROFILE_NAME 
-      
+      - run: sudo chown -R circleci:circleci /usr/local/bin
       - restore_cache:
           keys:
             - v1-{{ .Branch }}
-
       - run:
           name: Install Docker
           command: |
