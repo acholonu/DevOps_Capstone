@@ -170,12 +170,12 @@ jobs:
 
       - setup_remote_docker
 
-      - run: 
-          name: Testing Docker Install
-          command: |
-            sudo docker run -d --name cntr-test hello-world
-            #docker stop cntr-test
-            #docker rm cntr-test
+      # - run: 
+      #     name: Testing Docker Install
+      #     command: |
+      #       sudo docker run -d --name cntr-test hello-world
+      #       #docker stop cntr-test
+      #       #docker rm cntr-test
 
       - run:
           name: Print Operating System
