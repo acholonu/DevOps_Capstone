@@ -155,27 +155,9 @@ jobs:
 
       - restore_cache:
           keys:
-            - v1-{{ checksum "dagster/Dockerfile" }}
-
-      # - run:
-      #     name: Install Docker
-      #     command: |
-      #       # reference: https://docs.docker.com/engine/install/ubuntu/
-      #        sudo apt-get remove docker docker-engine docker.io containerd runc
-      #        sudo apt-get update
-      #        sudo apt-get install docker-ce docker-ce-cli containerd.io
-      #        docker --version
-      #        sudo service docker status
-      #        sudo service docker start
-
+            - v1-{{ .Branch }}-
+            
       - setup_remote_docker
-
-      # - run: 
-      #     name: Testing Docker Install
-      #     command: |
-      #       sudo docker run -d --name cntr-test hello-world
-      #       #docker stop cntr-test
-      #       #docker rm cntr-test
 
       - run:
           name: Print Operating System
@@ -251,8 +233,9 @@ jobs:
           name: Deploy Image to ECR
           command: |
             if [ "${CIRCLE_BRANCH}" == "main" ]; then
-              login="$(aws ecr get-login)"
-              ${login}
+              # I don't think I need the login since I setup the credentials already
+              #login="$(aws ecr get-login)"
+              #${login}
               docker tag dagster-app:v1.${CIRCLE_WORKFLOW_ID} "${AWS_ECR_REPO_URI}/dagster-app:${CIRCLE_SHA1}"
               docker push "${AWS_ECR_REPO_URI}/dagster-app:${CIRCLE_SHA1}"
             fi
