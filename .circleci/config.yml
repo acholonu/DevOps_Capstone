@@ -156,7 +156,7 @@ jobs:
       - run:
           name: Install AWS CLI 2
           command: |
-            apk add --no-cache python3 py3-pip
+            apk add --no-cache python3 py3-pip curl
             pip3 install --upgrade pip
             pip3 install --no-cache-dir awscliv2 
             rm -rf /var/cache/apk/*
@@ -199,6 +199,8 @@ jobs:
             echo "URL = $URL"
 
             # Check if can connect
+            curl $URL
+            
             if curl $URL
             then
                 echo "SUCCESS(+): Connected to Dagster UI\n"
