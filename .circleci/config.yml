@@ -194,7 +194,7 @@ jobs:
           name: Test Dagster Container
           command: |
             cd dagster
-            docker run -d -p 3000:3000 --name dagster-cntr-${CIRCLE_WORKFLOW_ID} dagster-app
+            docker run -d -p 3000:3000 --name dagster-cntr-${CIRCLE_WORKFLOW_ID} dagster-app:v1.${CIRCLE_WORKFLOW_ID}
             URL=localhost:3000
             echo "URL = $URL"
 
@@ -225,7 +225,7 @@ jobs:
           aws-access-key-id: AWS_ACCESS_KEY_ID
           aws-secret-access-key: AWS_SECRET_ACCESS_KEY
           profile-name: AWS_PROFILE_NAME
-          
+
       - deploy:
           name: Deploy Image to ECR
           command: |
