@@ -153,9 +153,9 @@ jobs:
 
       - run: sudo chown -R circleci:circleci /usr/local/bin
 
-      - restore_cache:
-          keys:
-            - v1-{{ .Branch }}-
+      # - restore_cache:
+      #     keys:
+      #       - v1-{{ .Branch }}-
             
       - setup_remote_docker
 
@@ -189,11 +189,11 @@ jobs:
             sudo mkdir -p /caches
             sudo docker save -o /caches/dagster-app.tar dagster-app:v1.${CIRCLE_WORKFLOW_ID}
 
-      - save_cache:
-          key: v1-{{ .Branch }}-{{ epoch }}
-          paths:
-            - /caches/dagster-app.tar
-            - /usr/local/bin # Binaries of dependencies
+      # - save_cache:
+      #     key: v1-{{ .Branch }}-{{ epoch }}
+      #     paths:
+      #       - /caches/dagster-app.tar
+      #       - /usr/local/bin # Binaries of dependencies
 
       # - run:
       #     name: Test Dagster Container
