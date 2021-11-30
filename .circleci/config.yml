@@ -141,24 +141,26 @@ jobs:
     working_directory: ~/project/dagster
     steps:
       - checkout
-      - aws-cli/install
-      # Need to deploy to ECR
-      - aws-cli/setup:
-          aws-region: AWS_DEFAULT_REGION
-          aws-access-key-id: AWS_ACCESS_KEY_ID
-          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-          profile-name: AWS_PROFILE_NAME
+      #- aws-cli/install # Works only for python images, need install python
       - setup_remote_docker 
       - restore_cache:
           keys:
             - v1-{{ .Branch }}
 
       - run:
-          name: Print OS
+          name: Print Operating System
           command: |
             # Check linux operating system of docker container
             cat /etc/os-release
-  
+
+      - run:
+          name: Install AWS CLI 2
+          command: |
+            apk add --no-cache python3 py3-pip
+            pip3 install --upgrade pip
+            pip3 install --no-cache-dir awscliv2 
+            rm -rf /var/cache/apk/*
+
       - run:
           name: Load Docker image layer cache
           command: |
@@ -176,15 +178,18 @@ jobs:
             TAG="dagster-app:v1.${CIRCLE_WORKFLOW_ID}"
             echo $TAG
             docker build --cache-from=dagster-app --tag $TAG .
+
       - run:
           name: Save Docker image layer cache
           command: |
             mkdir -p /caches
             docker save -o /caches/dagster-app.tar dagster-app
+
       - save_cache:
           key: v1-{{ .Branch }}-{{ epoch }}
           paths:
             - /caches/dagster-app.tar
+
       - run:
           name: Test Dagster Container
           command: |
@@ -214,6 +219,13 @@ jobs:
                 docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
                 exit 1
             fi
+      # Needed to deploy to ECR
+      - aws-cli/setup:
+          aws-region: AWS_DEFAULT_REGION
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          profile-name: AWS_PROFILE_NAME
+          
       - deploy:
           name: Deploy Image to ECR
           command: |
