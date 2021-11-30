@@ -5,10 +5,8 @@ orbs:
   slack: circleci/slack@4.5.0
   aws-cli: circleci/aws-cli@2.0.6
   aws-eks: circleci/aws-eks@1.1.0
-  aws-ecr: circleci/aws-ecr@7.3.0
-  aws-sam: circleci/aws-sam-serverless@3.1.0
   browser-tools: circleci/browser-tools@1.2.3
-  #kubernetes: circleci/kubernetes@0.12.1
+  kubernetes: circleci/kubernetes@0.12.1
 
 # These are custom functions that I use in other jobs
 commands:
@@ -23,7 +21,7 @@ commands:
 
   # Function 2
   destroy-docker-image:
-    description: Destroy docker image
+    description: Destroy Docker Image
     parameters:
       # Add parameter here
       docker_image_tag:
@@ -35,7 +33,7 @@ commands:
     steps:
       - checkout
       - run:
-          name: Destroy docker image
+          name: Destroy Docker Image
           when: on_fail
           command: |
             # Your code here
@@ -44,20 +42,18 @@ commands:
 
   # Function 3
   destroy-environment:
-    description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
+    description: Destroy Cloudformation Stacks Given A Workflow ID.
     parameters:
       # Add parameter here
       workflow_id:
         type: string
     steps:
       - run:
-          name: Destroy environments
+          name: Destroy Environments
           when: on_fail
           command: |
-            # Your code here
             # Use for roll back
             # Delete any infrastructure created.
-
             aws cloudformation delete-stack --stack-name "dagster-network-stack-<<parameters.workflow_id>>"
 
 jobs:
@@ -97,7 +93,7 @@ jobs:
             make lint
 
       - save_cache:
-          name: Save python virtualenv dependencies
+          name: Save Python Virtualenv Dependencies
           key: v1-dependencies-{{ checksum "pyproject.toml" }}
           paths:
             - /usr/local/bin # Binaries of dependencies
@@ -122,7 +118,7 @@ jobs:
           - v1-dependencies-
     
       - run: 
-          name: Activate environment
+          name: Activate Environment
           command: |
             . capstone/bin/activate
             echo -e "VIRTUAL_ENV=${VIRTUAL_ENV}\n"
@@ -130,7 +126,7 @@ jobs:
 
       # I have to activate the virtual environment to get his to work.
       - run:
-          name: Run dagster tests
+          name: Run Dagster Tests
           command: |
             . capstone/bin/activate # Why would I need to do this again?
             make test
@@ -138,35 +134,153 @@ jobs:
 
   # Build container and make sure browser test passes
   # More about URL servers
-  build_and_test_image:
+  build-and-deploy-image:
     docker:
-      # Want google chrome to already be installed for testing
-      - image: cimg/python:3.9.7-browsers
-        environment:
-          DATABASE_URL: postgresql://root@localhost/circle_test?sslmode=disable
-      - image: circleci/postgres:9.6.2 # an example of how to specify a service container
-        environment:
-          POSTGRES_USER: root
-          POSTGRES_DB: circle_test
-          POSTGRES_PASSWORD: ""
+      - image: cimg/python:3.9.7
+      #- image: docker:20.10.11-git
+    working_directory: ~/project/dagster
     steps:
       - checkout
+      
+      - aws-cli/install # Works only for python images, need install python
+      
+      # Needed to deploy to ECR
+      - aws-cli/setup:
+          aws-region: AWS_DEFAULT_REGION
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          profile-name: AWS_PROFILE_NAME 
+
+      - run: sudo chown -R circleci:circleci /usr/local/bin
+
+      # - restore_cache:
+      #     keys:
+      #       - v1-{{ .Branch }}-
+            
+      - setup_remote_docker
+
+      - run:
+          name: Print Operating System
+          command: |
+            # Check linux operating system of docker container
+            cat /etc/os-release
+
+      - run:
+          name: Load Docker image Layer Cache
+          command: |
+            # The following command says, if you want the command to fail due to an error at any stage 
+            # when pipe(|) output of a command to another command
+            set +o pipefail 
+            docker load -i /caches/dagster-app.tar | true
+
+      - run: 
+          name: Build Dagster Image
+          command: |
+            # Your stack command code here
+            echo "Building image..."
+            cd dagster
+            TAG="dagster-app:v1.${CIRCLE_WORKFLOW_ID}"
+            echo $TAG
+            docker build --cache-from=dagster-app --tag $TAG .
+
+      # - run:
+      #     name: Save Docker image layer cache
+      #     command: |
+      #       sudo mkdir -p /caches
+      #       sudo docker save -o /caches/dagster-app.tar dagster-app:v1.${CIRCLE_WORKFLOW_ID}
+
+      # - save_cache:
+      #     key: v1-{{ .Branch }}-{{ epoch }}
+      #     paths:
+      #       - /caches/dagster-app.tar
+      #       - /usr/local/bin # Binaries of dependencies
+
+      # - run:
+      #     name: Test Dagster Container
+      #     command: |
+      #       cd dagster
+      #       docker run -d -p 3000:3000 --name dagster-cntr-${CIRCLE_WORKFLOW_ID} dagster-app:v1.${CIRCLE_WORKFLOW_ID}
+      #       docker ps
+      #       URL=0.0.0.0:3000
+      #       echo "URL = $URL"
+      #       docker ps -a
+
+      #       # Check if can connect
+      #       curl $URL
+
+      #       if curl $URL
+      #       then
+      #           echo "SUCCESS(+): Connected to Dagster UI\n"
+      #       else
+      #           echo "FAILURE(-): Failed to connect to Dagster"
+      #           docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
+      #           exit 1
+      #       fi
+
+      #       # Check if it found relevant word.
+      #       if curl $URL | grep "Dagit"
+      #       then
+      #           echo "SUCCESS(++): found $2 in document: $URL\n"
+      #           docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
+      #           exit 0
+      #       else
+      #           echo "FAILURE(--): Failed to find $2 in document: $URL"
+      #           docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
+      #           exit 1
+      #       fi
+
+      - deploy:
+          name: Deploy Image to ECR
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "main" ]; then
+              # I don't think I need the login since I setup the credentials already
+              #login="$(aws ecr get-login)"
+              #${login}
+              docker tag dagster-app:v1.${CIRCLE_WORKFLOW_ID} "${AWS_ECR_REPO_URI}/dagster-app:${CIRCLE_SHA1}"
+              docker push "${AWS_ECR_REPO_URI}/dagster-app:${CIRCLE_SHA1}"
+            fi
+          
+  
+  test_ui:
+    docker:
+      - image: cimg/python:3.9.7
+    steps:
+      - checkout
+      # To enable docker commands need the following step
+      - setup_remote_docker:
+          version: 20.10.7
       - run: sudo chown -R circleci:circleci /usr/local/bin
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "pyproject.toml" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
+      - browser-tools/install-chrome
+      - browser-tools/install-chromedriver
+      - run:
+          name: Check Chrome Install
+          command: |
+            google-chrome --version
+            chromedriver --version
+          
       - run: 
-          name: Build Image
+          name: Build Dagster Image
           command: |
             # Your stack command code here
             echo "Building image..."
-      - run:
-          name: Download Selenium
+
+      - run: 
+          name: Run Container
           command: |
-            url -O https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.0.jar
-            pip install selenium
+            echo "Starting container"
+
+      - run:
+          name: Download Selenium Server
+          command: |
+            # sudo apt install wget # If not already installed uncomment
+            #url -O https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.0.jar
+            wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.0.jar
+            
       - run:
           name: Start Selenium
           command: |
@@ -179,22 +293,22 @@ jobs:
             echo "Starting smoke test..."
   
   # Upload container to repository
-  upload_image:
-    docker:
-      - image: cimg/python:3.9.7
-    steps: 
-      - checkout
-      - run: sudo chown -R circleci:circleci /usr/local/bin
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "pyproject.toml" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
-      - run: 
-          name: Upload Image
-          command: |
-            # Your stack command code here
-            echo "Upload image..."
+  # upload_image:
+  #   docker:
+  #     - image: cimg/python:3.9.7
+  #   steps: 
+  #     - checkout
+  #     - run: sudo chown -R circleci:circleci /usr/local/bin
+  #     - restore_cache:
+  #         keys:
+  #         - v1-dependencies-{{ checksum "pyproject.toml" }}
+  #         # fallback to using the latest cache if no exact match is found
+  #         - v1-dependencies-
+  #     - run: 
+  #         name: Upload Image
+  #         command: |
+  #           # Your stack command code here
+  #           echo "Upload image..."
   # End of Continuous Integration, Start of Continuous Delivery
   
   deploy_network_infrastructure:
@@ -220,18 +334,8 @@ workflows:
       - test_code:
           requires: [lint] # I need the dependencies to be created first
       
-      - build_and_test_image:
+      - build-and-deploy-image:
           requires: [test_code]
-          filters:
-            branches:
-              only: [develop, main]
-
-      # Manually approve before pushing to docker/ecr repository
-      #- hold:
-      #    type: approval
-
-      - upload_image:
-          requires: [build_and_test_image]
 
       # END OF CONTINUOUS INTEGRATION, START CONTINUOUS DELIVERY
       
@@ -243,3 +347,7 @@ workflows:
       #         only: [main]
 
       # Create EKS cluster (if not already created)
+
+      # Manually approve cleanup?
+      #- hold:
+      #    type: approval

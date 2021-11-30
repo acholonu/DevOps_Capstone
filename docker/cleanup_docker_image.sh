@@ -9,6 +9,19 @@
 # ----------
 # ./cleanup_docker_image.sh v0.1.0 dagstr-app-{workflow_id}
 
+# Set Script Options
+# ---------------------------
+# Reference: https://intoli.com/blog/exit-on-errors-in-bash-scripts/
+
+# exit when any command fails
+set -e
+# keep track of the last executed command
+trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
+# echo an error message before exiting
+trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
+
+# List Images and Containers
+# --------------------------
 echo "@@@Arguments: image_tag: $1 container name: $2"
 docker images
 docker ps -all
@@ -16,8 +29,6 @@ docker ps -all
 if $2 != "NONE"
 then
     docker stop $2 # Stop Container
-    docker rm $2 # remove container
+    docker rm $2 # Remove container
 fi
-docker rmi web_flask_app:$1 # remove image
-
-return 0
+docker rmi dagster_app:$1 # remove image

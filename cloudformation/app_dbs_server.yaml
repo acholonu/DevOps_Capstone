@@ -31,11 +31,11 @@ Parameters:
 
   DBEngineVersion:
     Type: "String"
-    Default: 13.5 # Main try 14.1
+    Default: 12.8 # Free
     Description: Personal Ips that are allowed to access the JumpBox
 
-  AppDBInstanceID:
-    Default: appDB-instanceID
+  DBInstanceID:
+    Default: postgres-db-id
     Description: Application database instance id
     Type: String
     MinLength: '1'
@@ -45,14 +45,17 @@ Parameters:
       Must begin with a letter and must not end with a hyphen or contain two
       consecutive hyphens.
   
-  AppDBInstanceClass:
+  DBInstanceClass:
     Default: db.t4g.micro # or db.t3.micro
     Description: DB instance class
     Type: String
     ConstraintDescription: Must select a valid DB instance type.
+    AllowedValues:
+      - db.t3.micro
+      - db.t4g.micro
 
-  AppDBName:
-    Default: aurora-postgresql-appDB
+  DBName:
+    Default: capstone-db
     Description: Name for the application Database
     Type: String
     MinLength: '1'
@@ -60,7 +63,7 @@ Parameters:
     AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
     ConstraintDescription: Must begin with a letter and contain only alphanumeric characters.
   
-  AppDBUsername:
+  DBUsername:
     NoEcho: 'true'
     Description: Username for Applicatin Postgres Database
     Type: String
@@ -69,7 +72,7 @@ Parameters:
     AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
     ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
   
-  AppDBPassword:
+  DBPassword:
     NoEcho: 'true'
     Description: Password Application Postgres Database access
     Type: String
@@ -81,7 +84,7 @@ Parameters:
 # Resources
 # ---------
 Resources:
-  AppDBSecurityGroup:
+  DBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties: 
       GroupDescription: Security group for application database
@@ -160,20 +163,20 @@ Resources:
   AppDB:
     Type: 'AWS::RDS::DBInstance'
     Properties:
-      DBInstanceIdentifier: !Ref AppDBInstanceID
-      DBName: !Ref AppDBName
+      DBInstanceIdentifier: !Ref DBInstanceID
+      DBName: !Ref DBName
       Engine: postgresql
       EngineVersion: !Ref DBEngineVersion
-      MasterUsername: !Ref AppDBUsername #Not sure if I need this but will keep
-      MasterUserPassword: !Ref AppDBPassword
+      MasterUsername: !Ref DBUsername #Not sure if I need this but will keep
+      MasterUserPassword: !Ref DBPassword
       PubliclyAccessible: true # FOR TESTING true, but will be false when done
-      DBInstanceClass: !Ref AppDBInstanceClass
+      DBInstanceClass: !Ref DBInstanceClass
       AutoMinorVersionUpgrade: true
       VPCSecurityGroups:
-        - !Ref AppDBSecurityGroup
+        - !Ref DBSecurityGroup
       Tags:
         - Key: "Name"
-          Value: !Ref AppDBName
+          Value: !Ref DBName
         - Key: "Purpose"
           Value: "Holds analytics and application data"
         - Key: "Project"

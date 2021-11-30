@@ -8,7 +8,6 @@ def test_hello():
     For hints on how to test your Dagster ops, see our documentation tutorial on Testing:
     https://docs.dagster.io/concepts/testing
     """
-
     assert hello() == "Hello, Dagster!"
 
 def test_find_highest_calorie_cereal():

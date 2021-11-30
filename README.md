@@ -47,6 +47,8 @@ Simple Flask app that prints backend results to screen.
 - [Docker and Postgres DB](https://dev.to/andre347/how-to-easily-create-a-postgres-database-in-docker-4moj)
 - [Database Security](https://docs.oracle.com/cd/B13789_01/network.101/b10773/apdvntro.htm)
 - [Creating a Jumpbox](https://aws.amazon.com/premiumsupport/knowledge-center/rds-connect-ec2-bastion-host/)
+- [Selenium Testing](https://www.selenium.dev/documentation/)
+- [Build A Docker Image in CircleCI](https://circleci.com/blog/how-to-build-a-docker-image-on-circleci-2-0/)
 
 ## Notes to Self
 
@@ -59,3 +61,14 @@ Simple Flask app that prints backend results to screen.
 - **Date 11/24/2021** - I really should separate these two application (Dagster and Flask app).  They should each have their own work flow and repository.  Then I would not be duplicating so much of my CI/CD.  Also, it would allow me to more easily explore where I which environment I want to deploy process too. I will continue with Dagster. You need a repository for each thing you want to deploy.
 - [Something to help with dagster.yaml file](https://github.com/dagster-io/dagster/issues/3079)
 - [Pytest Coverage](https://breadcrumbscollector.tech/how-to-use-code-coverage-in-python-with-pytest/)
+- [Wget for downloading content to linux](https://linuxize.com/post/wget-command-examples/)
+- [Permission Denied: execute bash script](https://careerkarma.com/blog/bash-permission-denied-solution/)
+- [Exit from Bash Script on Failure of Command](https://intoli.com/blog/exit-on-errors-in-bash-scripts/)
+- [mkdir options](https://www.javatpoint.com/linux-mkdir-p)
+- To execute the environement file use the following commands: `source .env`
+- [What is the difference between 127.0.0.1 and 0.0.0.0](https://www.howtogeek.com/225487/what-is-the-difference-between-127.0.0.1-and-0.0.0.0/#:~:text=In%20the%20context%20of%20servers,has%20two%20IP%20addresses%2C%20192.168.&text=2.1%2C%20and%20a%20server%20running,at%20both%20of%20those%20IPs.)
+  - `127.0.0.1` is the loopback address (also known as localhost). The address is used to establish an IP connection to the same machine or computer being used by the end-user.
+  - `0.0.0.0` is a non-routable meta-address used to designate an invalid, unknown, or non-applicable target (a ‘no particular address’ place holder). In the context of a route entry, it usually means the default route. In the context of servers, 0.0.0.0 means all IPv4 addresses on the local machine. If a host has two IP addresses, 192.168.1.1 and 10.1.2.1, and a server running on the host listens on 0.0.0.0, it will be reachable at both of those IPs.
+- [Docker Layers Reference 1](https://dzone.com/articles/docker-layers-explained)
+- [Docker Layers Reference 2](https://jessicagreben.medium.com/digging-into-docker-layers-c22f948ed612)
+- [Dockerfile Best Practices](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)

@@ -44,7 +44,7 @@ Parameters:
       Defines the IP ranges that exist in this private (private subnet2). Every IP address in this 
       subnet will start with 10.0.3. This private subnet will be in the second Availability Zone.
     Type: String
-    Default: 10.0.3.0/24 
+    Default: 10.0.3.0/24
 
 Resources:
   # defining our Virtual Private cloud
@@ -57,9 +57,9 @@ Resources:
       EnableDnsHostnames: true
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName}-Vpc
+          Value: !Sub ${EnvironmentName}-vpc
         - Key: Project
-          Value: Udacity Project 2 - Udagram
+          Value: Capstone
         - Key: Author
           Value: Ugochi Jones
 
@@ -142,7 +142,7 @@ Resources:
       Domain: vpc
 
   NatGateway2EIP:
-    Type: AWS::EC2::EIP # Elastic IP 2
+    Type: AWS::EC2::EIP
     # DependsOn says don't create until the resource (e.g., InternetGatewayAttachment) is created
     # However, AWS just takes this as a hint about what should be created first.
     # But what if you have multiple dependencies?
@@ -156,13 +156,6 @@ Resources:
     Properties:
       AllocationId: !GetAtt NatGateway1EIP.AllocationId
       SubnetId: !Ref PublicSubnet1
-
-  NatGateway2:
-    Type: AWS::EC2::NatGateway
-    DependsOn: NatGateway2EIP
-    Properties:
-      AllocationId: !GetAtt NatGateway2EIP.AllocationId
-      SubnetId: !Ref PublicSubnet2
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
