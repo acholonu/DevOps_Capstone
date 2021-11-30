@@ -190,39 +190,40 @@ jobs:
           paths:
             - /caches/dagster-app.tar
 
-      - run:
-          name: Test Dagster Container
-          command: |
-            cd dagster
-            docker run -d -p 3000:3000 --name dagster-cntr-${CIRCLE_WORKFLOW_ID} dagster-app:v1.${CIRCLE_WORKFLOW_ID}
-            docker ps
-            URL=0.0.0.0:3000
-            echo "URL = $URL"
-            docker ps -a
+      # - run:
+      #     name: Test Dagster Container
+      #     command: |
+      #       cd dagster
+      #       docker run -d -p 3000:3000 --name dagster-cntr-${CIRCLE_WORKFLOW_ID} dagster-app:v1.${CIRCLE_WORKFLOW_ID}
+      #       docker ps
+      #       URL=0.0.0.0:3000
+      #       echo "URL = $URL"
+      #       docker ps -a
 
-            # Check if can connect
-            curl $URL
+      #       # Check if can connect
+      #       curl $URL
 
-            if curl $URL
-            then
-                echo "SUCCESS(+): Connected to Dagster UI\n"
-            else
-                echo "FAILURE(-): Failed to connect to Dagster"
-                docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
-                exit 1
-            fi
+      #       if curl $URL
+      #       then
+      #           echo "SUCCESS(+): Connected to Dagster UI\n"
+      #       else
+      #           echo "FAILURE(-): Failed to connect to Dagster"
+      #           docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
+      #           exit 1
+      #       fi
 
-            # Check if it found relevant word.
-            if curl $URL | grep "Dagit"
-            then
-                echo "SUCCESS(++): found $2 in document: $URL\n"
-                docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
-                exit 0
-            else
-                echo "FAILURE(--): Failed to find $2 in document: $URL"
-                docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
-                exit 1
-            fi
+      #       # Check if it found relevant word.
+      #       if curl $URL | grep "Dagit"
+      #       then
+      #           echo "SUCCESS(++): found $2 in document: $URL\n"
+      #           docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
+      #           exit 0
+      #       else
+      #           echo "FAILURE(--): Failed to find $2 in document: $URL"
+      #           docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
+      #           exit 1
+      #       fi
+      
       # Needed to deploy to ECR
       - aws-cli/setup:
           aws-region: AWS_DEFAULT_REGION
