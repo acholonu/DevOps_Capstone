@@ -165,9 +165,14 @@ jobs:
              sudo apt-get update
              sudo apt-get install docker-ce docker-ce-cli containerd.io
              docker --version
-             systemctl start docker
 
       - setup_remote_docker
+      - run: 
+          name: Testing Docker Install
+          command: |
+            sudo docker run -d --name cntr-test hello-world
+            #docker stop cntr-test
+            #docker rm cntr-test
 
       - run:
           name: Print Operating System
