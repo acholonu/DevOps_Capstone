@@ -76,6 +76,9 @@ docker run -d -p 5000:5000 sample_flask_app
 docker run -d -p 5000:5000 --name my_flask_app_container sample_flask_app
 # docker run -d -p [Host port]:[Container port] --name <container name> <image name>
 
+docker run -d -rm -p 5000:5000 --name my_flask_app_container sample_flask_app
+# the -d --rm says, when the container stops, remove the container.
+
 # List Running Containers (and their information)
 # -----------------------------------------------
 # Remember containers are running Operating System processes, isolated in a box (i.e., container). 

@@ -72,3 +72,5 @@ Simple Flask app that prints backend results to screen.
 - [Docker Layers Reference 1](https://dzone.com/articles/docker-layers-explained)
 - [Docker Layers Reference 2](https://jessicagreben.medium.com/digging-into-docker-layers-c22f948ed612)
 - [Dockerfile Best Practices](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)
+- [What does backslash do at the end](https://unix.stackexchange.com/questions/368753/what-does-this-command-with-a-backslash-at-the-end-do)
+- A database cluster is a collection of databases that are managed by a single server instance.

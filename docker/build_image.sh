@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Create Docker Image for Dagster Service
 # ------------------------------------------
 # Args:
