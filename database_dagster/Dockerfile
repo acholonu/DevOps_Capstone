@@ -9,11 +9,11 @@ ENV POSTGRES_DB=$POSTGRES_DATABASE
 ENV DAGSTER_POSTGRES_USER=$DAGSTER_POSTGRES_USER
 ENV DAGSTER_POSTGRES_PASSWORD=$DAGSTER_POSTGRES_PASSWORD
 
-# Expose port 5432
-EXPOSE 5432
-
 # Copy initialization script to initialization folder
 COPY init_dagster_db.sh /docker-entrypoint-initdb.d/
+
+# Expose port 5432
+EXPOSE 5432
 
 # The command to execute
 CMD ["postgres"]

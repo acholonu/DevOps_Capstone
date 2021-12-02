@@ -9,3 +9,5 @@ This folder holds the definition for the database image used for the dagster app
 - **Dockerfile**: Defines the postgres database that the dagster app will use.  So basically constructs the dagster image.
 
 ## Other notes
+
+I will see if I want to combine this into the Dagster App Dockerfile.  So do a multi-stage build where this application is included.  It makes sense to do a multi-stage build because these two application (postgres database and dagster app) will always be working together.
