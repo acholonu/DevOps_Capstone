@@ -26,19 +26,8 @@ trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
 # ---------------
 echo -e "Arguments Received: [\n$1, $2\n] "
 
-# Create Volumes
-# --------------
-# To support persistance of the data, we create two volumes: 1) to save postgres data
-# and the other to save the postgres configurations.
-if $1 = true 
-then
-    docker volume create postgres_data
-    docker volume create postgres_config
-    docker network create postgres_network
-fi
-
-# Run Postgres Database Image
-# ------------------------------
+# Run DAGSTER Postgres Database Image
+# -----------------------------------
 # Note, I already pulled the docker image to my local image repository
 # I used the command: `docker pull postgres`.  It is the official postgres
 # container. url: https://hub.docker.com/_/postgres
@@ -53,10 +42,10 @@ docker run --rm -d --name dagster_db_ctnr -p 5432:5432 \
     -v postgres_data:/var/lib/postgresql/data \
     -v postgres_config:/etc/postgresql \
     --network postgres_network \
-    -e POSTGRES_PASSWORD=$POSTGRES_SUPER_USER_PASSWORD \
-    -e POSTGRES_USER=$POSTGRES_SUPER_USER \
+    -e POSTGRES_USER=$DAGSTER_POSTGRES_USER \
+    -e POSTGRES_PASSWORD=$DAGSTER_POSTGRES_PASSWORD \
     -e POSTGRES_DB=$POSTGRES_DATABASE \
-    postgres
+    dagster_postgres_db
 
 # Note -e says this is an environment variable
 

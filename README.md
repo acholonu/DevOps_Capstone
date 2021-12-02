@@ -74,3 +74,5 @@ Simple Flask app that prints backend results to screen.
 - [Dockerfile Best Practices](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)
 - [What does backslash do at the end](https://unix.stackexchange.com/questions/368753/what-does-this-command-with-a-backslash-at-the-end-do)
 - A database cluster is a collection of databases that are managed by a single server instance.
+- [Setting default variable values in bash scripts](https://stackoverflow.com/questions/2013547/assigning-default-values-to-shell-variables-with-a-single-command-in-bash)
+- [Setting default arguments](https://stackoverflow.com/questions/9332802/how-to-write-a-bash-script-that-takes-optional-input-arguments)
