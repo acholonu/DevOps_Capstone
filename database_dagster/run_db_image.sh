@@ -9,7 +9,7 @@
 # How to run
 # ----------
 # Assumes you are in the dagster folder
-# ./../docker/build_db_image.sh false
+# ./run_db_image.sh
 
 # Set Script Options
 # ---------------------------
@@ -21,10 +21,6 @@ set -e
 trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 # echo an error message before exiting
 trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
-
-# Print Arguments
-# ---------------
-echo -e "Arguments Received: [\n$1, $2\n] "
 
 # Run DAGSTER Postgres Database Image
 # -----------------------------------
@@ -38,10 +34,13 @@ echo -e "Arguments Received: [\n$1, $2\n] "
 # where the following command was not working.  The issue was that I had a space
 # and then a \n. So the command ignore the space and not the \n.  So the overall
 # command would fail.  I had to remove the space. 
+# The .env file will overwrite any environment variables already set in the docker file
+
 docker run --rm -d --name dagster-db-ctnr -p 5432:5432 \
     -v postgres_data:/var/lib/postgresql/data \
     -v postgres_config:/etc/postgresql \
     --network postgres_network \
+    --env-file .env \
     dagster-postgres-db:latest
 
 # Here is where I left off: https://docs.docker.com/language/python/develop/#:~:text=Now%20we%20can%20run,%24

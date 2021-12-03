@@ -5,17 +5,17 @@
 # Using the latest postgres docker image
 FROM postgres:latest
 
+LABEL microservice="dagster"
+LABEL service_type="database"
+LABEL purpose="Store data for dagster functionality and operations"
+
 # Set the superuser and dagster user
 # ----------------------------------
-ENV POSTGRES_DB=$POSTGRES_DATABASE
-ENV POSTGRES_USER=$POSTGRES_SUPER_USER
-ENV POSTGRES_PASSWORD=$POSTGRES_SUPER_USER_PASSWORD
+ENV POSTGRES_DB=$POSTGRES_DB
+ENV POSTGRES_USER=$POSTGRES_USER
+ENV POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 ENV DAGSTER_POSTGRES_USER=$DAGSTER_POSTGRES_USER
 ENV DAGSTER_POSTGRES_PASSWORD=$DAGSTER_POSTGRES_PASSWORD
-
-# Create directory that Postgres will look for to do initialization
-# -----------------------------------------------------------------
-RUN mkdir /docker-entrypoint-initdb.d/
 
 # Copy initialization script to initialization folder
 # ----------------------------------------------------
@@ -30,7 +30,3 @@ COPY world.sql /docker-entrypoint-initdb.d/
 
 # Expose port 5432
 EXPOSE 5432
-
-# The command to execute
-# CMD ["postgres"]
-
