@@ -10,8 +10,8 @@
 #
 # How to run
 # ----------
-# Assumes you are in the dagster folder
-# ./../docker/build_db_image.sh false
+# Assumes you are in the database_dagster folder
+# ./build_db_image.sh v1.0 false false
 
 # Set Script Options
 # ---------------------------
@@ -32,8 +32,10 @@ echo -e "Arguments Received: [\n$1, $2\n] "
 # --------------
 # To support persistance of the data, we create two volumes: 1) to save postgres data
 # and the other to save the postgres configurations.
-if $2 = true 
+
+if $2 = true
 then
+    echo "Creating Volumes"
     docker volume create postgres_data
     docker volume create postgres_config
     docker network create postgres_network
@@ -41,9 +43,14 @@ fi
 
 # Build Dagster Postgres DB Image
 # -------------------------------
-if $3 = true 
+if $3 = true
 then
+    echo "Creating from Cache"
     docker build --cache-from=dagster-postgres-db --tag dagster-postgres-db:$1 .
 else
     docker build --tag dagster-postgres-db:$1 .
 fi 
+
+# Add latest tag to built image
+# -----------------------------
+docker tag dagster-postgres-db:$1 dagster-postgres-db:latest

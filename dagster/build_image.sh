@@ -22,10 +22,6 @@ trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 # echo an error message before exiting
 trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
 
-# Set Variable Defaults
-# ---------------------
-BUILD_FROM_CACHE=[ if $2 exists, $2, else, false]
-
 # Print Arguments
 # ---------------
 echo -e "Arguments Received: [\n$1, $BUILD_FROM_CACHE\n] "
