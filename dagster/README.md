@@ -2,7 +2,7 @@
 
 Welcome to your new Dagster repository.
 
-### Contents
+## Contents
 
 | Name                     | Description                                                                       |
 | ------------------------ | --------------------------------------------------------------------------------- |

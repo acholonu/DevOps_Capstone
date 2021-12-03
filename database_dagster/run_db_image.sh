@@ -4,7 +4,7 @@
 # ------------------------------------------------
 # Args:
 # -----
-# $1 = true if you want Create Volumes
+# 
 #
 # How to run
 # ----------
@@ -38,15 +38,10 @@ echo -e "Arguments Received: [\n$1, $2\n] "
 # where the following command was not working.  The issue was that I had a space
 # and then a \n. So the command ignore the space and not the \n.  So the overall
 # command would fail.  I had to remove the space. 
-docker run --rm -d --name dagster_db_ctnr -p 5432:5432 \
+docker run --rm -d --name dagster-db-ctnr -p 5432:5432 \
     -v postgres_data:/var/lib/postgresql/data \
     -v postgres_config:/etc/postgresql \
     --network postgres_network \
-    -e POSTGRES_USER=$DAGSTER_POSTGRES_USER \
-    -e POSTGRES_PASSWORD=$DAGSTER_POSTGRES_PASSWORD \
-    -e POSTGRES_DB=$POSTGRES_DATABASE \
-    dagster_postgres_db
-
-# Note -e says this is an environment variable
+    dagster-postgres-db:latest
 
 # Here is where I left off: https://docs.docker.com/language/python/develop/#:~:text=Now%20we%20can%20run,%24

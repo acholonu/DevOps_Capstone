@@ -29,14 +29,15 @@ echo -e "Arguments Received: [\n$1,\n$2,\n$3]"
 
 # Run a Container in detach mode
 # ------------------------------
-# The name of the container ($1).
+# Start a container.  The --rm option, says once the container is stop, rm it.
+# 
 if $3 = true 
 then
-    docker run -d --env-file .env -p 3000:3000 --name $1 dagster-app
+    docker run -d --rm --env-file .env -p 3000:3000 --name $1 dagster-app
 else
     # Environment variables should be made available through CircleCI
-    #docker run -d -p 3000:3000 -e POSTGRES_DATABASE -e POSTGRES_HOST -e POSTGRES_PASSWORD -e POSTGRES_USER --name $1 dagster_app
-    docker run -d -p 3000:3000 --name $1 dagster-app
+    #docker run -d --rm -p 3000:3000 -e POSTGRES_DATABASE -e POSTGRES_HOST -e POSTGRES_PASSWORD -e POSTGRES_USER --name $1 dagster_app
+    docker run -d --rm -p 3000:3000 --name $1 dagster-app
 fi
 
 # List all processes running
