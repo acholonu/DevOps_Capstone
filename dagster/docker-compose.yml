@@ -8,15 +8,16 @@ services:
     env_file: .env # This will be overwritten by environment section
     container_name: dagit
     environment:
-      POSTGRES_HOSTNAME: "postgresql"
-      POSTGRES_USER: "postgres_user"
-      POSTGRES_PASSWORD: "postgres_password"
-      POSTGRES_DB: "postgres_db"
+      POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     #command: "dagit -h 0.0.0.0 -p 3000 -w workspace.yaml"
     ports:
       - "3000:3000"
     depends_on:
       - postgresql
+    restart: always
 
 # This service runs the postgres DB used by dagster for run storage, schedule
   # storage, and event log storage. In a real deployment, you might choose to
@@ -27,7 +28,15 @@ services:
     env_file:
       - .env
     environment:
-      POSTGRES_HOSTNAME: "postgresql"
-      POSTGRES_USER: "postgres_user"
-      POSTGRES_PASSWORD: "postgres_password"
-      POSTGRES_DB: "postgres_db"
+      # Hostname needs to always be the name of the service (i.e., postgresql)
+      POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME} 
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    networks:
+      - default
+    ports:
+      - 5405:5432 #Note change
+    restart: always
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
