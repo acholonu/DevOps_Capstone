@@ -1,0 +1,33 @@
+version: '3.9'
+services:
+  dagit:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: "$REGISTRY_URL/learning/dagit:$VERSION"
+    env_file: .env # This will be overwritten by environment section
+    container_name: dagit
+    environment:
+      POSTGRES_HOSTNAME: "postgresql"
+      POSTGRES_USER: "postgres_user"
+      POSTGRES_PASSWORD: "postgres_password"
+      POSTGRES_DB: "postgres_db"
+    #command: "dagit -h 0.0.0.0 -p 3000 -w workspace.yaml"
+    #ports:
+    #  - "3000:3000"
+    depends_on:
+      - postgresql
+
+# This service runs the postgres DB used by dagster for run storage, schedule
+  # storage, and event log storage. In a real deployment, you might choose to
+  # remove this in favor of an RDS instance.
+  postgresql:
+    image: postgres:latest
+    container_name: dagster-db-ctnr
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOSTNAME: "postgresql"
+      POSTGRES_USER: "postgres_user"
+      POSTGRES_PASSWORD: "postgres_password"
+      POSTGRES_DB: "postgres_db"
