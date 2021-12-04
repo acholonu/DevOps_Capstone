@@ -9,7 +9,7 @@
 #
 # How to run
 # ----------
-# ./../docker/build_image.sh v1.0 false
+# ./build_image.sh v1.0 false
 
 # Set Script Options
 # ---------------------------

@@ -10,7 +10,7 @@
 # ----------
 # ./../docker/test_image.sh dagster-app-{CIRCLE_WORKFLOW_ID} Hello false
 # or
-# ./../docker/test_image.sh dagster-app-test Hello true
+# ./../docker/test_image.sh dagster-app-test-ctnr Hello true
 
 # Set Script Options
 # ---------------------------
@@ -33,11 +33,16 @@ echo -e "Arguments Received: [\n$1,\n$2,\n$3]"
 # 
 if $3 = true 
 then
-    docker run -d --rm --env-file .env -p 3000:3000 --name $1 dagster-app
+    #docker run -d --rm --env-file .env -p 3000:3000 --name $1 dagster-app
+    docker run -d --rm \
+    --env-file .env \
+    --network postgres_network \
+    -p 3000:3000 --name $1 \
+    dagster-app
 else
     # Environment variables should be made available through CircleCI
     #docker run -d --rm -p 3000:3000 -e POSTGRES_DATABASE -e POSTGRES_HOST -e POSTGRES_PASSWORD -e POSTGRES_USER --name $1 dagster_app
-    docker run -d --rm -p 3000:3000 --name $1 dagster-app
+    docker run -d --rm --env-file .env -p 3000:3000 --name $1 dagster-app
 fi
 
 # List all processes running

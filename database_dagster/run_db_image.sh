@@ -46,10 +46,16 @@ then
         --env-file .env \
         dagster-postgres-db:latest
 else
+    # docker run --rm -d --name dagster-db-ctnr -p 5432:5432 \
+    #     -v postgres_data:/var/lib/postgresql/data \
+    #     -v postgres_config:/etc/postgresql \
+    #     --network postgres_network \
+    #     --env-file .env \
+    #     dagster-postgres-db:latest
+
     docker run --rm -d --name dagster-db-ctnr -p 5432:5432 \
         -v postgres_data:/var/lib/postgresql/data \
         -v postgres_config:/etc/postgresql \
-        --network postgres_network \
         --env-file .env \
         dagster-postgres-db:latest
 fi
