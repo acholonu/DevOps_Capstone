@@ -11,8 +11,8 @@ setup:
 	sudo chmod +x /bin/hadolint
 
 	# installs poetry
-	#sudo curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
-	poetry self update # update poetry
+	sudo curl -sSL https://install.python-poetry.org | python3 -
+	#poetry self update # update poetry
 	poetry --version
 
 create-environment:

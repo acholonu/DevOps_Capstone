@@ -32,7 +32,7 @@ run_launcher:
     env_vars:
       - DAGSTER_POSTGRES_USER
       - DAGSTER_POSTGRES_PASSWORD
-      - POSTGRES_DATABASE
+      - POSTGRES_DB
       - POSTGRES_HOST
 
 # Kubernetes, allocates a Kubernetes Job per run. 
@@ -68,7 +68,7 @@ event_log_storage:
       hostname:
         env: POSTGRES_HOST
       db_name:
-        env: POSTGRES_DATABASE
+        env: POSTGRES_DB
       port: 5432
 
 
@@ -84,7 +84,7 @@ run_storage:
       hostname:
         env: POSTGRES_HOST
       db_name:
-        env: POSTGRES_DATABASE
+        env: POSTGRES_DB
       port: 5432
 
 
@@ -100,7 +100,7 @@ schedule_storage:
       hostname:
         env: POSTGRES_HOST
       db_name:
-        env: POSTGRES_DATABASE
+        env: POSTGRES_DB
       port: 5432
 
 compute_logs:

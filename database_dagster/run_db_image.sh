@@ -4,12 +4,12 @@
 # ------------------------------------------------
 # Args:
 # -----
-# 
+# $1 = true if in Test mod
 #
 # How to run
 # ----------
-# Assumes you are in the dagster folder
-# ./run_db_image.sh
+# Assumes you are in the dagster database folder
+# ./run_db_image.sh true
 
 # Set Script Options
 # ---------------------------
@@ -21,6 +21,10 @@ set -e
 trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 # echo an error message before exiting
 trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
+
+# Print Arguments
+# ---------------
+echo -e "Arguments Received: [$1] "
 
 # Run DAGSTER Postgres Database Image
 # -----------------------------------
@@ -36,11 +40,18 @@ trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
 # command would fail.  I had to remove the space. 
 # The .env file will overwrite any environment variables already set in the docker file
 
-docker run --rm -d --name dagster-db-ctnr -p 5432:5432 \
-    -v postgres_data:/var/lib/postgresql/data \
-    -v postgres_config:/etc/postgresql \
-    --network postgres_network \
-    --env-file .env \
-    dagster-postgres-db:latest
+if $1 = true
+then
+    docker run -d --rm --name db-test-ctnr -p 5432:5432 \
+        --env-file .env \
+        dagster-postgres-db:latest
+else
+    docker run --rm -d --name dagster-db-ctnr -p 5432:5432 \
+        -v postgres_data:/var/lib/postgresql/data \
+        -v postgres_config:/etc/postgresql \
+        --network postgres_network \
+        --env-file .env \
+        dagster-postgres-db:latest
+fi
 
 # Here is where I left off: https://docs.docker.com/language/python/develop/#:~:text=Now%20we%20can%20run,%24
