@@ -13,7 +13,7 @@ LABEL purpose="Store data for dagster functionality and operations"
 # Set the superuser and dagster user
 # ----------------------------------
 ENV POSTGRES_DB=$POSTGRES_DB
-#ENV POSTGRES_USER=$POSTGRES_USER
+#ENV POSTGRES_USER=$POSTGRES_USER # defaults to postgres as the user
 ENV POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 ENV DAGSTER_POSTGRES_USER=$DAGSTER_POSTGRES_USER
 ENV DAGSTER_POSTGRES_PASSWORD=$DAGSTER_POSTGRES_PASSWORD

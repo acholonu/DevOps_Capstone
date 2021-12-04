@@ -62,9 +62,9 @@ event_log_storage:
   config:
     postgres_db:
       username:
-        env: DAGSTER_POSTGRES_USER
+        env: POSTGRES_USER
       password:
-        env: DAGSTER_POSTGRES_PASSWORD
+        env: POSTGRES_PASSWORD
       hostname:
         env: POSTGRES_HOSTNAME
       db_name:
@@ -78,9 +78,9 @@ run_storage:
   config:
     postgres_db:
       username:
-        env: DAGSTER_POSTGRES_USER
+        env: POSTGRES_USER
       password:
-        env: DAGSTER_POSTGRES_PASSWORD
+        env: POSTGRES_PASSWORD
       hostname:
         env: POSTGRES_HOSTNAME
       db_name:
@@ -93,9 +93,9 @@ schedule_storage:
   config:
     postgres_db:
       username:
-        env: DAGSTER_POSTGRES_USER
+        env: POSTGRES_USER
       password:
-        env: DAGSTER_POSTGRES_PASSWORD
+        env: POSTGRES_PASSWORD
       hostname:
         env: POSTGRES_HOSTNAME
       db_name:
