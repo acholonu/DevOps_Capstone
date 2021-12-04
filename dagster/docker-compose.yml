@@ -2,9 +2,9 @@ version: '3.9'
 services:
   dagit:
     build:
-      context: .
-      dockerfile: ./Dockerfile
-    image: "$REGISTRY_URL/learning/dagit:$VERSION"
+      context: . # what files does the container have access to from the host system
+      dockerfile: ./Dockerfile # What docker file to run
+    image: "${REGISTRY_URL}/learning/dagit:${VERSION}"
     env_file: .env # This will be overwritten by environment section
     container_name: dagit
     environment:
@@ -29,6 +29,7 @@ services:
       - .env
     environment:
       # Hostname needs to always be the name of the service (i.e., postgresql)
+      # This way the two services (postgresql and dagit can always communicate)
       POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME} 
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}

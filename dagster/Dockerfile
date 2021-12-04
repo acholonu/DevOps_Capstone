@@ -55,4 +55,6 @@ EXPOSE 3000
 # Opening the Dagster UI
 # Using 0.0.0.0 because I want any IP address on the machine, when using port 3000
 # to go to the dagster app
+# An ‘entrypoint’ gives you the ability to run the container as an executable. 
+
 ENTRYPOINT ["dagit", "-h", "0.0.0.0", "-p", "3000"]
