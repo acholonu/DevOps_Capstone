@@ -10,3 +10,9 @@ load_from:
       working_directory: .
       attribute: dagster_capstone # name of the function in repository.py, that returns RepositoryDefinition
       location_name: Tutorial_Repository_Location # Custom name that I give to the repository
+  
+  # Each entry here corresponds to a container that exposes a gRPC server.
+  - grpc_server:
+      host: docker_example_user_code
+      port: 4000
+      location_name: "example_user_code"

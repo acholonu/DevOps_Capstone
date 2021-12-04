@@ -80,3 +80,5 @@ Simple Flask app that prints backend results to screen.
 - [Docker compose, Flask App & PostgresDB](https://levelup.gitconnected.com/dockerizing-a-flask-application-with-a-postgres-database-b5e5bfc24848)
 - [Docker compose another example](https://levelup.gitconnected.com/creating-and-filling-a-postgres-db-with-docker-compose-e1607f6f882f)
 - [Top 30 Git Commands to Master](https://levelup.gitconnected.com/top-30-git-commands-you-should-know-to-master-git-cli-f04e041779bc)
+- [Networking in Docker Compose](https://docs.docker.com/compose/networking/)
+- [Docker Compose in Production](https://docs.docker.com/compose/production/)

@@ -1,15 +1,10 @@
-# scheduler:
-#   module: dagster_cron.cron_scheduler
-#   class: SystemCronScheduler
-
 scheduler:
   module: dagster.core.scheduler
   class: DagsterDaemonScheduler
 
-# Allows opting out of Dagster collecting usage statistics.
-# Reference: https://docs.dagster.io/deployment/dagster-instance#telemetry
-telemetry:
-  enabled: false
+run_coordinator:
+  module: dagster.core.run_coordinator
+  class: QueuedRunCoordinator
 
 # Dagster Run Launcher
 # --------------------
@@ -22,18 +17,9 @@ telemetry:
 #   class: DefaultRunLauncher
 
 # Allocates a Docker container per run. Spawns a new process in a docker container.
-# run_launcher:
-#   module: dagster_docker
-#   class: DockerRunLauncher
 run_launcher:
   module: dagster_docker
   class: DockerRunLauncher
-  config:
-    env_vars:
-      - POSTGRES_USER
-      - POSTGRES_PASSWORD
-      - POSTGRES_DB
-      - POSTGRES_HOSTNAME
 
 # Kubernetes, allocates a Kubernetes Job per run. 
 # run_launcher:
@@ -117,3 +103,8 @@ local_artifact_storage:
   class: LocalArtifactStorage
   config:
     base_dir: "/opt/dagster/local/"
+  
+# Allows opting out of Dagster collecting usage statistics.
+# Reference: https://docs.dagster.io/deployment/dagster-instance#telemetry
+telemetry:
+  enabled: false

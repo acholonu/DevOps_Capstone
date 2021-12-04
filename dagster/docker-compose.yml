@@ -4,27 +4,73 @@ services:
     build:
       context: . # what files does the container have access to from the host system
       dockerfile: ./Dockerfile # What docker file to run
+      target: dagit
     image: "${REGISTRY_URL}/learning/dagit:${VERSION}" # Name of the image built
     env_file: .env # This will be overwritten by environment section
-    container_name: dagit
+    container_name: dagit-UI
     environment:
-      POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    #command: "dagit -h 0.0.0.0 -p 3000 -w workspace.yaml"
+      DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
+      DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
+      DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "3000:3000"
     depends_on:
       - postgresql
+      - user_code
     restart: always
+
+# This service runs the dagster-daemon process, which is responsible for
+  # taking runs off of the queue and launching them, as well as creating
+  # runs from schedules or sensors.
+  daemon:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: dagster
+    image: "$REGISTRY_URL/learning/daemon:${VERSION}"
+    container_name: dagster-daemon
+    env_file: .env
+    command: "dagster-daemon run"
+    environment:
+      DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
+      DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
+      DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
+    depends_on:
+      - postgresql
+      - user_code
+  
+# This service runs a gRPC server that serves information about your
+  # repository. By setting DAGSTER_CURRENT_IMAGE to its own image, we tell the
+  # run launcher to use this same image when launching runs in a new container.
+  # Multiple containers like this can be deployed separately - each needs to
+  # run on its own port and have its own entry in the workspace.yaml file.
+  user_code:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: user_code
+    image: "$REGISTRY_URL/learning/user_code"
+    container_name: dagster-user-code
+    env_file:
+      - .env
+    command: "dagster api grpc -h 0.0.0.0 -p 4000 -f ./dagster_capstone/repository.py"
+    environment:
+      DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
+      DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
+      DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
+      DAGSTER_CURRENT_IMAGE: "${REGISTRY_URL}/learning/user_code"
+    depends_on:
+      - postgresql
 
 # This service runs the postgres DB used by dagster for run storage, schedule
   # storage, and event log storage. In a real deployment, you might choose to
   # remove this in favor of an RDS instance.
   postgresql:
     image: postgres:latest
-    container_name: dagster-db-ctnr
+    container_name: dagster-db
     env_file:
       - .env
     environment:
@@ -34,13 +80,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    networks:
-      - default
     ports:
       - 5405:5432 #Note change, see details below
     restart: always
-    volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+    #volumes:
+    #  - ./postgres-data:/var/lib/postgresql/data
 
     # Details on postgresql service
     # ------------------------------
@@ -51,4 +95,4 @@ services:
     #
     # I don't really get why we have to change the ports. But I know that befor I had the 
     # host port as 5432 as well, and it would not let me connect.  When I changed the port
-    # everything worked.
+    # everything worked. I am using port 5405 when connecting using RazorSQL.
