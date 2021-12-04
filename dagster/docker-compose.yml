@@ -4,8 +4,7 @@ services:
     build:
       context: . # what files does the container have access to from the host system
       dockerfile: ./Dockerfile # What docker file to run
-      target: dagit
-    image: "${REGISTRY_URL}/dagit:${VERSION}" # Name of the image built
+    image: "${REGISTRY_URL}/learning/dagit:${VERSION}" # Name of the image built
     env_file: .env # This will be overwritten by environment section
     container_name: dagit-UI
     # environment:
