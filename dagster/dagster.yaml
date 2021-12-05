@@ -1,11 +1,3 @@
-scheduler:
-  module: dagster.core.scheduler
-  class: DagsterDaemonScheduler
-
-run_coordinator:
-  module: dagster.core.run_coordinator
-  class: QueuedRunCoordinator
-
 # Dagster Run Launcher
 # --------------------
 # The run launcher determines where runs are executed. 
@@ -20,6 +12,28 @@ run_coordinator:
 run_launcher:
   module: dagster_docker
   class: DockerRunLauncher
+  # env_vars:
+  #     - DAGSTER_POSTGRES_HOSTNAME
+  #     - DAGSTER_POSTGRES_USER
+  #     - DAGSTER_POSTGRES_PASSWORD
+  #     - DAGSTER_POSTGRES_DB
+  # container_kwargs:
+  #   volumes:
+  #     # Save user repository code to volume 
+  #     - dagster_capstone/repository.py:/opt/dagster/
+
+scheduler:
+  module: dagster.core.scheduler
+  class: DagsterDaemonScheduler
+
+# Run Coordinator
+# ---------------
+# The run coordinator determines the policy used to determine the 
+# prioritization rules and concurrency limits for runs.  If you use 
+# default coordinate, means immediately sends runs to the run launcher.
+run_coordinator:
+  module: dagster.core.run_coordinator
+  class: QueuedRunCoordinator
 
 # Kubernetes, allocates a Kubernetes Job per run. 
 # run_launcher:
@@ -72,7 +86,6 @@ run_storage:
       db_name:
         env: POSTGRES_DB
       port: 5432
-
 
 schedule_storage:
   module: dagster_postgres.schedule_storage
