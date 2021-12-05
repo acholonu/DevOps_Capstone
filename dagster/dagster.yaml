@@ -22,18 +22,18 @@ run_launcher:
   #     # Save user repository code to volume 
   #     - dagster_capstone/repository.py:/opt/dagster/
 
-scheduler:
-  module: dagster.core.scheduler
-  class: DagsterDaemonScheduler
+# scheduler:
+#   module: dagster.core.scheduler
+#   class: DagsterDaemonScheduler
 
 # Run Coordinator
 # ---------------
 # The run coordinator determines the policy used to determine the 
 # prioritization rules and concurrency limits for runs.  If you use 
 # default coordinate, means immediately sends runs to the run launcher.
-run_coordinator:
-  module: dagster.core.run_coordinator
-  class: QueuedRunCoordinator
+# run_coordinator:
+#   module: dagster.core.run_coordinator
+#   class: QueuedRunCoordinator
 
 # Kubernetes, allocates a Kubernetes Job per run. 
 # run_launcher:
@@ -56,51 +56,51 @@ run_coordinator:
 # Then I want to create a database is postgres.  So may have DEV environment (postgres)
 # on my machine.  And PRODUCTION is in the cloud.
 # Reference: https://docs.dagster.io/deployment/dagster-instance#schedule-storage
-event_log_storage:
-  module: dagster_postgres.event_log
-  class: PostgresEventLogStorage
-  config:
-    postgres_db:
-      username:
-        env: POSTGRES_USER
-      password:
-        env: POSTGRES_PASSWORD
-      hostname:
-        env: POSTGRES_HOSTNAME
-      db_name:
-        env: POSTGRES_DB
-      port: 5432
+# event_log_storage:
+#   module: dagster_postgres.event_log
+#   class: PostgresEventLogStorage
+#   config:
+#     postgres_db:
+#       username:
+#         env: POSTGRES_USER
+#       password:
+#         env: POSTGRES_PASSWORD
+#       hostname:
+#         env: POSTGRES_HOSTNAME
+#       db_name:
+#         env: POSTGRES_DB
+#       port: 5432
 
 
-run_storage:
-  module: dagster_postgres.run_storage
-  class: PostgresRunStorage
-  config:
-    postgres_db:
-      username:
-        env: POSTGRES_USER
-      password:
-        env: POSTGRES_PASSWORD
-      hostname:
-        env: POSTGRES_HOSTNAME
-      db_name:
-        env: POSTGRES_DB
-      port: 5432
+# run_storage:
+#   module: dagster_postgres.run_storage
+#   class: PostgresRunStorage
+#   config:
+#     postgres_db:
+#       username:
+#         env: POSTGRES_USER
+#       password:
+#         env: POSTGRES_PASSWORD
+#       hostname:
+#         env: POSTGRES_HOSTNAME
+#       db_name:
+#         env: POSTGRES_DB
+#       port: 5432
 
-schedule_storage:
-  module: dagster_postgres.schedule_storage
-  class: PostgresScheduleStorage
-  config:
-    postgres_db:
-      username:
-        env: POSTGRES_USER
-      password:
-        env: POSTGRES_PASSWORD
-      hostname:
-        env: POSTGRES_HOSTNAME
-      db_name:
-        env: POSTGRES_DB
-      port: 5432
+# schedule_storage:
+#   module: dagster_postgres.schedule_storage
+#   class: PostgresScheduleStorage
+#   config:
+#     postgres_db:
+#       username:
+#         env: POSTGRES_USER
+#       password:
+#         env: POSTGRES_PASSWORD
+#       hostname:
+#         env: POSTGRES_HOSTNAME
+#       db_name:
+#         env: POSTGRES_DB
+#       port: 5432
 
 # # Store logs (Std output) in S3
 # compute_logs:

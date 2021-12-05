@@ -24,26 +24,26 @@ services:
 # This service runs the dagster-daemon process, which is responsible for
   # taking runs off of the queue and launching them, as well as creating
   # runs from schedules or sensors. It is a long running process.
-  dagster_daemon:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-      target: dagster
-    image: "$REGISTRY_URL/dagster_daemon:${VERSION}"
-    container_name: dagster-daemon
-    env_file: .env
-    command: "dagster-daemon run" # Starts the dagster daemon
-    # environment:
-    #   DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
-    #   DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
-    #   DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    #   DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
-    depends_on:
-      - postgresql
-      #- user_code
-    restart: "no"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+  # dagster_daemon:
+  #   build:
+  #     context: .
+  #     dockerfile: ./Dockerfile
+  #     target: dagster
+  #   image: "$REGISTRY_URL/dagster_daemon:${VERSION}"
+  #   container_name: dagster-daemon
+  #   env_file: .env
+  #   command: "dagster-daemon run" # Starts the dagster daemon
+  #   # environment:
+  #   #   DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
+  #   #   DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
+  #   #   DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #   #   DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
+  #   depends_on:
+  #     - postgresql
+  #     #- user_code
+  #   restart: "no"
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
 
 # This service runs a gRPC server that serves information about your
   # repository. By setting DAGSTER_CURRENT_IMAGE to its own image, we tell the
@@ -69,71 +69,26 @@ services:
   #   depends_on:
   #     - postgresql
 
-# This service runs the dagster-daemon process, which is responsible for
-  # taking runs off of the queue and launching them, as well as creating
-  # runs from schedules or sensors.
-  daemon:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-      target: dagster
-    image: "$REGISTRY_URL/learning/daemon:${VERSION}"
-    container_name: dagster-daemon
-    env_file: .env
-    command: "dagster-daemon run"
-    environment:
-      DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
-      DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
-      DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
-    depends_on:
-      - postgresql
-      - user_code
-  
-# This service runs a gRPC server that serves information about your
-  # repository. By setting DAGSTER_CURRENT_IMAGE to its own image, we tell the
-  # run launcher to use this same image when launching runs in a new container.
-  # Multiple containers like this can be deployed separately - each needs to
-  # run on its own port and have its own entry in the workspace.yaml file.
-  user_code:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-      target: user_code
-    image: "$REGISTRY_URL/learning/user_code"
-    container_name: dagster-user-code
-    env_file:
-      - .env
-    command: "dagster api grpc -h 0.0.0.0 -p 4000 -f ./dagster_capstone/repository.py"
-    environment:
-      DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
-      DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
-      DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
-      DAGSTER_CURRENT_IMAGE: "${REGISTRY_URL}/learning/user_code"
-    depends_on:
-      - postgresql
-
 # This service runs the postgres DB used by dagster for run storage, schedule
   # storage, and event log storage. In a real deployment, you might choose to
   # remove this in favor of an RDS instance.
-  postgresql:
-    image: postgres:latest
-    container_name: dagster-db
-    env_file:
-      - .env
-    # environment:
-    #   # Hostname needs to always be the name of the service (i.e., postgresql)
-    #   # This way the two services (postgresql and dagit can always communicate)
-    #   POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME} 
-    #   POSTGRES_USER: ${POSTGRES_USER}
-    #   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    #   POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - 5405:5432 #Note change, see details below
-    restart: "on-failure"
-    volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+  # postgresql:
+  #   image: postgres:latest
+  #   container_name: dagster-db
+  #   env_file:
+  #     - .env
+  #   # environment:
+  #   #   # Hostname needs to always be the name of the service (i.e., postgresql)
+  #   #   # This way the two services (postgresql and dagit can always communicate)
+  #   #   POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME} 
+  #   #   POSTGRES_USER: ${POSTGRES_USER}
+  #   #   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #   #   POSTGRES_DB: ${POSTGRES_DB}
+  #   ports:
+  #     - 5405:5432 #Note change, see details below
+  #   restart: "on-failure"
+  #   volumes:
+  #     - ./postgres-data:/var/lib/postgresql/data
 
     # Details on postgresql service
     # ------------------------------

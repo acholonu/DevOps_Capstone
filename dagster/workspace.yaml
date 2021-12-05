@@ -11,7 +11,7 @@ load_from:
       attribute: dagster_capstone # name of the function in repository.py, that returns RepositoryDefinition
       location_name: Tutorial # Custom name that I give to the repository
   
-  # Each entry here corresponds to a container that exposes a gRPC server.
+# Each entry here corresponds to a container that exposes a gRPC server.
 #   - grpc_server:
 #       host: ${POSTGRES_HOSTNAME}
 #       port: 4000
