@@ -1,0 +1,16 @@
+# Docker Compose Production Changes
+# ---------------------------------
+#
+# Purpose
+# --
+# To update the settings in docker-compose for the production environment. 
+# Changes include using environment variables versus the .env. Also, I 
+# want the always restart on for all containers (or at least the
+# dagit container). May also want the logs to go to S3
+#
+# How to use
+# --
+# You need to use in conjunction with dev docker compose file. See command
+# below:
+#
+# docker-compose -f docker-compose.yml -f docker-compose-prod.yml up -d
