@@ -13,4 +13,4 @@
 # You need to use in conjunction with dev docker compose file. See command
 # below:
 #
-# docker-compose -f docker-compose.yml -f docker-compose-prod.yml up -d
+# docker-compose -f docker-compose.yml -f docker-compose-prod-overrides.yml up -d
