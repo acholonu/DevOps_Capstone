@@ -15,6 +15,7 @@ services:
     #   DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "3000:3000"
+    restart: no
     depends_on:
       - postgresql
       #- user_code
@@ -40,6 +41,7 @@ services:
     depends_on:
       - postgresql
       #- user_code
+    restart: no
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
@@ -84,7 +86,7 @@ services:
     #   POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - 5405:5432 #Note change, see details below
-    restart: always
+    restart: on_failure
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
 

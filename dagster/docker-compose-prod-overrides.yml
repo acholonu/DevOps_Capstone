@@ -37,6 +37,7 @@ services:
     restart: always
 
   postgresql:
+    restart: always
     environment:
       # Hostname needs to always be the name of the service (i.e., postgresql)
       # This way the two services (postgresql and dagit can always communicate)
