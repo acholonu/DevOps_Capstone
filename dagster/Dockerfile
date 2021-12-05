@@ -30,7 +30,8 @@ USER build_user
 # I am mirroring local file structure to container's file structure
 RUN mkdir -p /opt/dagster/dagster_capstone \
     /opt/dagster/dagster_home \
-    /opt/dagster/local
+    /opt/dagster/local \
+    /opt/dagster/logs
 
 # Copy your code and workspace to /opt/dagster/app
 #COPY workspace.yaml /opt/dagster/dagster_capstone/
