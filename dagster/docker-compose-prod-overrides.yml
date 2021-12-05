@@ -14,3 +14,33 @@
 # below:
 #
 # docker-compose -f docker-compose.yml -f docker-compose-prod-overrides.yml up -d
+version: '3.9'
+services:
+  dagit:
+    
+    environment:
+      DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
+      DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
+      DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
+    restart: always
+
+# This service runs the dagster-daemon process, which is responsible for
+  # taking runs off of the queue and launching them, as well as creating
+  # runs from schedules or sensors. It is a long running process.
+  dagster_daemon:
+    environment:
+      DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
+      DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
+      DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
+    restart: always
+
+  postgresql:
+    environment:
+      # Hostname needs to always be the name of the service (i.e., postgresql)
+      # This way the two services (postgresql and dagit can always communicate)
+      POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME} 
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
