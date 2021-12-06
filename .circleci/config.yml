@@ -174,14 +174,37 @@ jobs:
             docker load -i /caches/dagster-app.tar | true
 
       - run: 
-          name: Build Dagster Image
+          name: Build Dagster Image & Contaier
           command: |
             # Your stack command code here
             echo "Building image..."
             cd dagster
-            TAG="dagster-app:v1.${CIRCLE_WORKFLOW_ID}"
-            echo $TAG
-            docker build --cache-from=dagster-app --tag $TAG .
+            docker-compose -f docker-compose.yml -f docker-compose-prod-overrides.yml up -d
+
+            URL=0.0.0.0:3000
+
+            # Check if can connect
+            curl $URL
+
+            if curl $URL
+            then
+                echo "SUCCESS(+): Connected to Dagster UI\n"
+            else
+                echo "FAILURE(-): Failed to connect to Dagster"
+                exit 1
+            fi
+
+            # Check if it found relevant word.
+            if curl $URL | grep "Dagit"
+            then
+                echo "SUCCESS(++): found $2 in document: $URL\n"
+                exit 0
+            else
+                echo "FAILURE(--): Failed to find $2 in document: $URL"
+                exit 1
+            fi
+            docker-compose down
+
 
       # - run:
       #     name: Save Docker image layer cache
@@ -194,51 +217,17 @@ jobs:
       #     paths:
       #       - /caches/dagster-app.tar
       #       - /usr/local/bin # Binaries of dependencies
-
-      # - run:
-      #     name: Test Dagster Container
+            
+      # - deploy:
+      #     name: Deploy Image to ECR
       #     command: |
-      #       cd dagster
-      #       docker run -d -p 3000:3000 --name dagster-cntr-${CIRCLE_WORKFLOW_ID} dagster-app:v1.${CIRCLE_WORKFLOW_ID}
-      #       docker ps
-      #       URL=0.0.0.0:3000
-      #       echo "URL = $URL"
-      #       docker ps -a
-
-      #       # Check if can connect
-      #       curl $URL
-
-      #       if curl $URL
-      #       then
-      #           echo "SUCCESS(+): Connected to Dagster UI\n"
-      #       else
-      #           echo "FAILURE(-): Failed to connect to Dagster"
-      #           docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
-      #           exit 1
+      #       if [ "${CIRCLE_BRANCH}" == "main" ]; then
+      #         # I don't think I need the login since I setup the credentials already
+      #         #login="$(aws ecr get-login)"
+      #         #${login}
+      #         docker tag dagster-app:v1.${CIRCLE_WORKFLOW_ID} "${AWS_ECR_REPO_URI}/dagster-app:${CIRCLE_SHA1}"
+      #         docker push "${AWS_ECR_REPO_URI}/dagster-app:${CIRCLE_SHA1}"
       #       fi
-
-      #       # Check if it found relevant word.
-      #       if curl $URL | grep "Dagit"
-      #       then
-      #           echo "SUCCESS(++): found $2 in document: $URL\n"
-      #           docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
-      #           exit 0
-      #       else
-      #           echo "FAILURE(--): Failed to find $2 in document: $URL"
-      #           docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
-      #           exit 1
-      #       fi
-
-      - deploy:
-          name: Deploy Image to ECR
-          command: |
-            if [ "${CIRCLE_BRANCH}" == "main" ]; then
-              # I don't think I need the login since I setup the credentials already
-              #login="$(aws ecr get-login)"
-              #${login}
-              docker tag dagster-app:v1.${CIRCLE_WORKFLOW_ID} "${AWS_ECR_REPO_URI}/dagster-app:${CIRCLE_SHA1}"
-              docker push "${AWS_ECR_REPO_URI}/dagster-app:${CIRCLE_SHA1}"
-            fi
           
   
   test_ui:
@@ -291,25 +280,6 @@ jobs:
           command: |
             # Smoke Test for Dagster Site
             echo "Starting smoke test..."
-  
-  # Upload container to repository
-  # upload_image:
-  #   docker:
-  #     - image: cimg/python:3.9.7
-  #   steps: 
-  #     - checkout
-  #     - run: sudo chown -R circleci:circleci /usr/local/bin
-  #     - restore_cache:
-  #         keys:
-  #         - v1-dependencies-{{ checksum "pyproject.toml" }}
-  #         # fallback to using the latest cache if no exact match is found
-  #         - v1-dependencies-
-  #     - run: 
-  #         name: Upload Image
-  #         command: |
-  #           # Your stack command code here
-  #           echo "Upload image..."
-  # End of Continuous Integration, Start of Continuous Delivery
   
   deploy_network_infrastructure:
     docker:

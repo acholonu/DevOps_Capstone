@@ -17,7 +17,7 @@
 version: '3.9'
 services:
   dagit:
-    
+    env_file: null
     environment:
       DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
       DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
@@ -29,6 +29,7 @@ services:
   # taking runs off of the queue and launching them, as well as creating
   # runs from schedules or sensors. It is a long running process.
   dagster_daemon:
+    env_file: null
     environment:
       DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
       DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
@@ -38,6 +39,7 @@ services:
 
   postgresql:
     restart: always
+    env_file: null
     environment:
       # Hostname needs to always be the name of the service (i.e., postgresql)
       # This way the two services (postgresql and dagit can always communicate)
