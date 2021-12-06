@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Cleanup
 # -------
 # Args:
@@ -7,7 +9,7 @@
 #
 # How to run
 # ----------
-# ./cleanup_docker_image.sh v0.1.0 dagstr-app-{workflow_id}
+# ./cleanup_docker_image.sh v0.1.0 NONE
 
 # Set Script Options
 # ---------------------------
@@ -31,4 +33,4 @@ then
     docker stop $2 # Stop Container
     docker rm $2 # Remove container
 fi
-docker rmi dagster_app:$1 # remove image
+docker rmi dagster-app:$1 # remove image

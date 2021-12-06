@@ -28,6 +28,8 @@ Simple Flask app that prints backend results to screen.
 - [Elastic Container Repository - ECR](https://aws.amazon.com/ecr/) I will use this instead of DockerHub, Maybe?
 - [Postgres Image](https://hub.docker.com/_/postgres)
 - [Bash Not Equal Operator](https://linuxtect.com/linux-bash-not-equal-ne-operators-tutorial/)
+- [Kompose](https://kompose.io/)
+  - Convert Docker Compose file to Kubernetes file
 
 ## Files
 
@@ -72,3 +74,14 @@ Simple Flask app that prints backend results to screen.
 - [Docker Layers Reference 1](https://dzone.com/articles/docker-layers-explained)
 - [Docker Layers Reference 2](https://jessicagreben.medium.com/digging-into-docker-layers-c22f948ed612)
 - [Dockerfile Best Practices](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)
+- [What does backslash do at the end](https://unix.stackexchange.com/questions/368753/what-does-this-command-with-a-backslash-at-the-end-do)
+- A database cluster is a collection of databases that are managed by a single server instance.
+- [Setting default variable values in bash scripts](https://stackoverflow.com/questions/2013547/assigning-default-values-to-shell-variables-with-a-single-command-in-bash)
+- [Setting default arguments](https://stackoverflow.com/questions/9332802/how-to-write-a-bash-script-that-takes-optional-input-arguments)
+- [Understand Entrypoints](https://docs.docker.com/engine/reference/builder/#entrypoint)
+- [Docker compose, Flask App & PostgresDB](https://levelup.gitconnected.com/dockerizing-a-flask-application-with-a-postgres-database-b5e5bfc24848)
+- [Docker compose another example](https://levelup.gitconnected.com/creating-and-filling-a-postgres-db-with-docker-compose-e1607f6f882f)
+- [Top 30 Git Commands to Master](https://levelup.gitconnected.com/top-30-git-commands-you-should-know-to-master-git-cli-f04e041779bc)
+- [Networking in Docker Compose](https://docs.docker.com/compose/networking/)
+- [Docker Compose in Production](https://docs.docker.com/compose/production/)
+- [Docker-Compose Command Reference](https://docs.docker.com/compose/reference/push/)

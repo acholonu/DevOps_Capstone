@@ -71,3 +71,6 @@ archive/
 
 .coverage
 .env
+
+postgres-data/
+logs/

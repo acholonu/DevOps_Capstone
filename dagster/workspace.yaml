@@ -9,4 +9,16 @@ load_from:
       relative_path: dagster_capstone/repository.py
       working_directory: .
       attribute: dagster_capstone # name of the function in repository.py, that returns RepositoryDefinition
-      location_name: Tutorial_Repository_Location # Custom name that I give to the repository
+      location_name: Tutorial # Custom name that I give to the repository
+  
+  # Each entry here corresponds to a container that exposes a gRPC server.
+#   - grpc_server:
+#       host: ${POSTGRES_HOSTNAME}
+#       port: 4000
+#       location_name: User Code Server (gRPC)
+#       relative_path: dagster_capstone/repository.py
+#       working_directory: .
+
+# Because I am not running my own gRPC server, If I change user code, I need
+# to rebuild the container each time. This is connected to the user_code: section
+# in the docker-compose.yml

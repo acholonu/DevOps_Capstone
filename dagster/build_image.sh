@@ -1,13 +1,15 @@
+#!/bin/bash
+
 # Create Docker Image for Dagster Service
 # ------------------------------------------
 # Args:
 # -----
 # $1 = image tag version (e.g., v1.0)
-# $2 = Use a cache path
+# $2 = true if you want to build from a cache path
 #
 # How to run
 # ----------
-# ./../docker/build_image.sh v1.0 false
+# ./build_image.sh v1.0 false
 
 # Set Script Options
 # ---------------------------
@@ -22,12 +24,13 @@ trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
 
 # Print Arguments
 # ---------------
-echo -e "Arguments Received: [\n$1, $2\n] "
+echo -e "Arguments Received: [\n$1, $BUILD_FROM_CACHE\n] "
 
 # Build Image
 # -----------
 # Run in app folder. So change directory. The Dockerfile should be in the app folder
 # The period (.) at the end is the context
+#if $2 = true
 if $2 = true 
 then
     docker build --cache-from=dagster_app --tag dagster-app:$1 .
