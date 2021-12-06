@@ -28,6 +28,8 @@ Simple Flask app that prints backend results to screen.
 - [Elastic Container Repository - ECR](https://aws.amazon.com/ecr/) I will use this instead of DockerHub, Maybe?
 - [Postgres Image](https://hub.docker.com/_/postgres)
 - [Bash Not Equal Operator](https://linuxtect.com/linux-bash-not-equal-ne-operators-tutorial/)
+- [Kompose](https://kompose.io/)
+  - Convert Docker Compose file to Kubernetes file
 
 ## Files
 
@@ -82,3 +84,4 @@ Simple Flask app that prints backend results to screen.
 - [Top 30 Git Commands to Master](https://levelup.gitconnected.com/top-30-git-commands-you-should-know-to-master-git-cli-f04e041779bc)
 - [Networking in Docker Compose](https://docs.docker.com/compose/networking/)
 - [Docker Compose in Production](https://docs.docker.com/compose/production/)
+- [Docker-Compose Command Reference](https://docs.docker.com/compose/reference/push/)

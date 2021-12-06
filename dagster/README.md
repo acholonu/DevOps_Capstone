@@ -112,3 +112,10 @@ This first rebuilds the image for `dagit` and then stop, destroy, and recreate j
 There is a layered approached with docker-compose files.  You can create a base file (i.e., docker-compose) that sets the configuration for the default case (dev environment), and the another file (i.e., docker-compose-prod.yml) that will overwrite or augment that file with settings for productions.  To execute this layered approach, do the following:
 
 >`docker-compose -f docker-compose.yml -f docker-compose-prod-overrides.yml up -d`
+
+### Pushing to Producting
+
+```bash
+docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD docker.io
+docker-compose push --ignore-push-failures
+```
