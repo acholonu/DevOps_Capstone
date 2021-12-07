@@ -61,8 +61,7 @@ jobs:
     docker: 
       # This image has poetry, pyenv, pip, pipenv, and python 3.10 pre-installed
       # https://hub.docker.com/r/cimg/python
-      - image: cimg/python:3.9.7
-
+      - image: cimg/python:3.9.7  
     steps:
       - checkout
       # Use the chown command to grant CircleCI access to dependency locations
@@ -138,20 +137,18 @@ jobs:
     docker:
       - image: cimg/python:3.9.7
       #- image: docker:20.10.11-git
+        auth:
+            username: $DOCKER_USERNAME
+            password: $DOCKER_ACCESS_CODE
     working_directory: ~/project/dagster
+    environment:
+      VERSION: <<pipeline.number>>
     steps:
       - checkout
       
-      - aws-cli/install # Works only for python images, need install python
-      
-      # Needed to deploy to ECR
-      - aws-cli/setup:
-          aws-region: AWS_DEFAULT_REGION
-          aws-access-key-id: AWS_ACCESS_KEY_ID
-          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-          profile-name: AWS_PROFILE_NAME 
+      - aws-cli/install # Works only for python images, need install python 
 
-      - run: sudo chown -R circleci:circleci /usr/local/bin
+      #- run: sudo chown -R circleci:circleci /usr/local/bin
 
       # - restore_cache:
       #     keys:
@@ -178,6 +175,9 @@ jobs:
           command: |
             # Your stack command code here
             echo "Building image..."
+
+            echo "VERSION=${VERSION}"
+
             cd dagster
             docker-compose -f docker-compose.yml -f docker-compose-prod-overrides.yml up -d
 
@@ -204,6 +204,12 @@ jobs:
                 exit 1
             fi
             docker-compose down
+      
+      - run:
+          name: Deploy to Docker Repository
+          command: |
+            echo "Deploying to Docker"
+            docker-compose push --ignore-push-failures
 
 
       # - run:
@@ -218,16 +224,6 @@ jobs:
       #       - /caches/dagster-app.tar
       #       - /usr/local/bin # Binaries of dependencies
             
-      # - deploy:
-      #     name: Deploy Image to ECR
-      #     command: |
-      #       if [ "${CIRCLE_BRANCH}" == "main" ]; then
-      #         # I don't think I need the login since I setup the credentials already
-      #         #login="$(aws ecr get-login)"
-      #         #${login}
-      #         docker tag dagster-app:v1.${CIRCLE_WORKFLOW_ID} "${AWS_ECR_REPO_URI}/dagster-app:${CIRCLE_SHA1}"
-      #         docker push "${AWS_ECR_REPO_URI}/dagster-app:${CIRCLE_SHA1}"
-      #       fi
           
   
   test_ui:
@@ -288,11 +284,42 @@ jobs:
       - checkout
       - aws-cli/install:
           override-installed: true
+      - aws-cli/setup:
+          aws-region: AWS_DEFAULT_REGION
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          profile-name: AWS_PROFILE_NAME
       - run: 
           name: Deploy stack
           command: |
             # Your stack command code here
             echo "Deploying stack..."
+
+  create_k8s_cluster:
+    docker: 
+      - image: cimg/python:3.9.7
+    steps:
+      - checkout
+      - aws-cli/install:
+          override-installed: true
+      - aws-cli/setup:
+          aws-region: AWS_DEFAULT_REGION
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          profile-name: AWS_PROFILE_NAME
+  
+  deploy_to_k8s:
+    docker: 
+      - image: cimg/python:3.9.7
+    steps:
+      - checkout
+      - aws-cli/install:
+          override-installed: true
+      - aws-cli/setup:
+          aws-region: AWS_DEFAULT_REGION
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          profile-name: AWS_PROFILE_NAME
 
 # Workflows
 # ----------------------
