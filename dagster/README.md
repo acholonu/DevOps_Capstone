@@ -119,3 +119,27 @@ There is a layered approached with docker-compose files.  You can create a base 
 docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD docker.io
 docker-compose push --ignore-push-failures
 ```
+
+### Installing Kompose
+
+Converts docker-compose.yaml into kubernetes config files (see https://kompose.io/)
+
+Install:
+
+```bash
+curl -L https://github.com/kubernetes/kompose/releases/download/v1.25.0/kompose-darwin-amd64 -o kompose
+chmod +x kompose
+sudo mv ./kompose /usr/local/bin/kompose
+```
+
+To Use:
+
+```bash
+kompose convert
+kubectl apply -f .
+kubectl get po
+```
+
+Multiple Files: `kompose -f docker-compose.yml -f docker-guestbook.yml convert`
+
+**Note to Self**: I may need to convert the docker-compose-prod-overrides to a regular docker-compose file to use this utility.

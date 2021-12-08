@@ -1,3 +1,22 @@
+# Docker Compose (Local Development)
+# ---------------------------------
+#
+# Environment
+# --
+# Use only when doing local development (so in Development Environment)
+# DEVELOPMENT
+#
+# Purpose
+# --
+# To set up and run the dagster microservice on local development machine. 
+# Environment variable come from an environment file.
+#
+# How to use
+# --
+#  Run the following command:
+#
+# > docker-compose up
+
 version: '3.9'
 services:
   dagit:

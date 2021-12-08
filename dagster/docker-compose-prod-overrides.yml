@@ -1,6 +1,11 @@
 # Docker Compose Production Changes
 # ---------------------------------
 #
+# Environment
+# --
+# Use only when doing local development (so in Development Environment)
+# DEVELOPMENT
+#
 # Purpose
 # --
 # To update the settings in docker-compose for the production environment. 
@@ -13,7 +18,8 @@
 # You need to use in conjunction with dev docker compose file. See command
 # below:
 #
-# docker-compose -f docker-compose.yml -f docker-compose-prod-overrides.yml up -d
+# > docker-compose -f docker-compose.yml -f docker-compose-prod-overrides.yml up -d
+
 version: '3.9'
 services:
   dagit:

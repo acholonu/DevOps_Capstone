@@ -295,32 +295,6 @@ jobs:
             # Your stack command code here
             echo "Deploying stack..."
 
-  create_k8s_cluster:
-    docker: 
-      - image: cimg/python:3.9.7
-    steps:
-      - checkout
-      - aws-cli/install:
-          override-installed: true
-      - aws-cli/setup:
-          aws-region: AWS_DEFAULT_REGION
-          aws-access-key-id: AWS_ACCESS_KEY_ID
-          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-          profile-name: AWS_PROFILE_NAME
-  
-  deploy_to_k8s:
-    docker: 
-      - image: cimg/python:3.9.7
-    steps:
-      - checkout
-      - aws-cli/install:
-          override-installed: true
-      - aws-cli/setup:
-          aws-region: AWS_DEFAULT_REGION
-          aws-access-key-id: AWS_ACCESS_KEY_ID
-          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-          profile-name: AWS_PROFILE_NAME
-
 # Workflows
 # ----------------------
 workflows:
@@ -335,16 +309,44 @@ workflows:
           requires: [test_code]
 
       # END OF CONTINUOUS INTEGRATION, START CONTINUOUS DELIVERY
-      
+
       # Want everything in my VPC, so deploying aws infrastructure
-      # - deploy_infrastucture:
-      #     requires: [upload_image]
-      #     filters:
-      #       branches:
-      #         only: [main]
+      - deploy_network_infrastructure:
+          requires: [build-and-deploy-image]
+          filters:
+             branches:
+               only: [main, develop, uj_deploy]
+
+      - aws-eks/create-cluster:
+          cluster-name: my-eks-demo
+          requires:
+            - deploy_network_infrastructure
+          filters:
+             branches:
+               only: [main, develop, uj_deploy]
+
+      - test-cluster:
+          cluster-name: my-eks-demo
+          requires:
+            - aws-eks/create-cluster
+          filters:
+             branches:
+               only: [main, develop, uj_deploy]
+
+      # Manually approve cleanup
+      - hold:
+         type: approval
+
+      - aws-eks/delete-cluster:
+          cluster-name: my-eks-demo
+          requires:
+            - test-cluster
+          filters:
+             branches:
+               only: [main, develop, uj_deploy]
+      
+      
 
       # Create EKS cluster (if not already created)
 
-      # Manually approve cleanup?
-      #- hold:
-      #    type: approval
+      

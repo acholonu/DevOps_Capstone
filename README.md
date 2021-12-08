@@ -30,6 +30,7 @@ Simple Flask app that prints backend results to screen.
 - [Bash Not Equal Operator](https://linuxtect.com/linux-bash-not-equal-ne-operators-tutorial/)
 - [Kompose](https://kompose.io/)
   - Convert Docker Compose file to Kubernetes file
+- [EKSCTL](https://eksctl.io/usage/minimum-iam-policies/)
 
 ## Files
 
