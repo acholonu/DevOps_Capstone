@@ -1,0 +1,29 @@
+# I need to change this dynamically to get the right subnet and vpc id
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: <<cluster-in-existing-vpc>>
+  region: us-east-2
+
+vpc:
+  subnets:
+    private:
+      us-east-2a: { id: <<subnet-0ff156e0c4a6d300c>> }
+      us-east-2b: { id: <<subnet-0549cdab573695c03>> }
+      us-east-2c: { id: <<subnet-0426fb4a607393184>> }
+
+nodeGroups:
+  - name: ng-1-workers
+    labels: { role: workers }
+    instanceType: m5.xlarge
+    desiredCapacity: 2
+    privateNetworking: true
+  - name: ng-2-builders
+    labels: { role: builders }
+    instanceType: m5.2xlarge
+    desiredCapacity: 2
+    privateNetworking: true
+    iam:
+      withAddonPolicies:
+        imageBuilder: true

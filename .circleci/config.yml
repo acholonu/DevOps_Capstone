@@ -20,8 +20,8 @@ commands:
           channel: alerts # Slack channel to display to
 
   # Function 2
-  destroy-docker-image:
-    description: Destroy Docker Image
+  rollback-deployment:
+    description: Rollback of Deployment
     parameters:
       # Add parameter here
       docker_image_tag:
@@ -37,16 +37,13 @@ commands:
           when: on_fail
           command: |
             # Your code here
-            ./docker/cleanup_docker_image.sh <<parameter.docker_image_tag>> <<parameter.docker_container_name>>
+            # Revert to previous container as the latest.
+            # Delete the new container
 
 
   # Function 3
   destroy-environment:
     description: Destroy Cloudformation Stacks Given A Workflow ID.
-    parameters:
-      # Add parameter here
-      workflow_id:
-        type: string
     steps:
       - run:
           name: Destroy Environments
@@ -54,7 +51,7 @@ commands:
           command: |
             # Use for roll back
             # Delete any infrastructure created.
-            aws cloudformation delete-stack --stack-name "dagster-network-stack-<<parameters.workflow_id>>"
+            aws cloudformation delete-stack --stack-name "dagster-network-stack-<<pipeline.number>>"
 
 jobs:
   lint:
@@ -179,7 +176,7 @@ jobs:
             echo "VERSION=${VERSION}"
 
             cd dagster
-            docker-compose -f docker-compose.yml -f docker-compose-prod-overrides.yml up -d
+            docker-compose -f docker-compose-prod.yml up -d
 
             URL=0.0.0.0:3000
 
@@ -209,7 +206,7 @@ jobs:
           name: Deploy to Docker Repository
           command: |
             echo "Deploying to Docker"
-            docker-compose push --ignore-push-failures
+            docker-compose -f docker-compose-prod.yml push --ignore-push-failures
 
 
       # - run:
@@ -224,8 +221,6 @@ jobs:
       #       - /caches/dagster-app.tar
       #       - /usr/local/bin # Binaries of dependencies
             
-          
-  
   test_ui:
     docker:
       - image: cimg/python:3.9.7
@@ -285,15 +280,53 @@ jobs:
       - aws-cli/install:
           override-installed: true
       - aws-cli/setup:
-          aws-region: AWS_DEFAULT_REGION
-          aws-access-key-id: AWS_ACCESS_KEY_ID
-          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-          profile-name: AWS_PROFILE_NAME
+          aws-region: $AWS_DEFAULT_REGION
+          aws-access-key-id: $AWS_ACCESS_KEY_ID
+          aws-secret-access-key: $AWS_SECRET_ACCESS_KEY
+          profile-name: $AWS_PROFILE_NAME
       - run: 
           name: Deploy stack
           command: |
             # Your stack command code here
             echo "Deploying stack..."
+            cd cloudformation
+            ./create_stack $AWS_PROFILE_NAME dagster-network network.yaml network_parameters.json
+      - destroy-environment
+
+    test-cluster:
+      executor: aws-eks/python3
+      parameters:
+        cluster-name:
+          description: |
+            Name of the EKS cluster
+          type: string
+      steps:
+        - kubernetes/install
+        - aws-eks/update-kubeconfig-with-authenticator:
+            cluster-name: dagster-eks
+        - run:
+            name: Test cluster
+            command: |
+              kubectl get services
+        # Destroy cluster on fail
+        - delete-cluster:
+            when: on_fail
+        - destroy-environment
+
+    create-update:
+      docker:
+        - image: 'cimg/base:stable'
+      steps:
+        - checkout
+        - kubernetes/install-kubectl
+        - run:
+          name: 
+        - kubernetes/create-or-update-resource:
+            get-rollout-status: true
+            resource-file-path: tests/nginx-deployment/deployment.yaml #Fix this Path
+            resource-name: deployment/nginx-deployment # Fix this path
+            show-kubectl-command: true
+            
 
 # Workflows
 # ----------------------
@@ -317,8 +350,11 @@ workflows:
              branches:
                only: [main, develop, uj_deploy]
 
+      # Create EKS cluster (if not already created)
       - aws-eks/create-cluster:
-          cluster-name: my-eks-demo
+          cluster-name: dagster-eks
+          show-eksctl-command: true
+          tags: "Owner=UgochiJ, application=udacity-app, purpose=learning"
           requires:
             - deploy_network_infrastructure
           filters:
@@ -326,27 +362,22 @@ workflows:
                only: [main, develop, uj_deploy]
 
       - test-cluster:
-          cluster-name: my-eks-demo
+          cluster-name: dagster-eks
           requires:
             - aws-eks/create-cluster
           filters:
              branches:
                only: [main, develop, uj_deploy]
-
+      # Swap Blue/Green candidates in Docker (remember what the blue candidate was, just in case you need to rollback)
       # Manually approve cleanup
       - hold:
          type: approval
 
       - aws-eks/delete-cluster:
-          cluster-name: my-eks-demo
+          cluster-name: dagster-eks
           requires:
-            - test-cluster
+            - aws-eks/create-cluster
           filters:
              branches:
                only: [main, develop, uj_deploy]
-      
-      
-
-      # Create EKS cluster (if not already created)
-
       

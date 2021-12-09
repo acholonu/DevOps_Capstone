@@ -27,14 +27,9 @@ services:
     image: "${REGISTRY_URL}/dagit:${VERSION}" # Name of the image built
     env_file: .env # This will be overwritten by environment section
     container_name: dagit-UI
-    # environment:
-    #   DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
-    #   DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
-    #   DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    #   DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "3000:3000"
-    restart: "no"
+    restart: "on-failure"
     depends_on:
       - postgresql
       #- user_code
@@ -52,11 +47,6 @@ services:
     container_name: dagster-daemon
     env_file: .env
     command: "dagster-daemon run" # Starts the dagster daemon
-    # environment:
-    #   DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
-    #   DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
-    #   DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    #   DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
     depends_on:
       - postgresql
       #- user_code
@@ -79,12 +69,6 @@ services:
   #   env_file:
   #     - .env
   #   command: "dagster api grpc -h 0.0.0.0 -p 4000 -f ./dagster_capstone/repository.py"
-  #   environment:
-  #     DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
-  #     DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
-  #     DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-  #     DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
-  #     DAGSTER_CURRENT_IMAGE: "${REGISTRY_URL}/learning/user_code"
   #   depends_on:
   #     - postgresql
 
@@ -92,17 +76,10 @@ services:
   # storage, and event log storage. In a real deployment, you might choose to
   # remove this in favor of an RDS instance.
   postgresql:
-    image: postgres:latest
+    image: postgres:14.1
     container_name: dagster-db
     env_file:
       - .env
-    # environment:
-    #   # Hostname needs to always be the name of the service (i.e., postgresql)
-    #   # This way the two services (postgresql and dagit can always communicate)
-    #   POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME} 
-    #   POSTGRES_USER: ${POSTGRES_USER}
-    #   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    #   POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - 5405:5432 #Note change, see details below
     restart: "on-failure"

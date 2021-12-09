@@ -62,13 +62,14 @@ EXPOSE 3000
 # to go to the dagster app
 # An ‘entrypoint’ gives you the ability to run the container as an executable. 
 
-ENTRYPOINT ["dagit", "-h", "0.0.0.0", "-p", "3000"]
+#ENTRYPOINT ["dagit", "-h", "0.0.0.0", "-p", "3000"]
+CMD ["dagit", "-h", "0.0.0.0", "-p", "3000"]
 
-FROM dagster AS user_code
+# FROM dagster AS user_code
 
-# Run dagster gRPC server on port 4000
-EXPOSE 4000
+# # Run dagster gRPC server on port 4000
+# EXPOSE 4000
 
-# Using CMD rather than ENTRYPOINT allows the command to be overridden in
-# run launchers or executors to run other commands using this image
-CMD ["dagster", "api", "grpc", "-h", "0.0.0.0", "-p", "4000", "-f", "dagster_capstone/repository.py"]
+# # Using CMD rather than ENTRYPOINT allows the command to be overridden in
+# # run launchers or executors to run other commands using this image
+# CMD ["dagster", "api", "grpc", "-h", "0.0.0.0", "-p", "4000", "-f", "dagster_capstone/repository.py"]

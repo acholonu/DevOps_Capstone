@@ -33,7 +33,7 @@ services:
       DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
       DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
-    restart: always
+    restart: on-failure
     ports:
       - "3000:3000"
     depends_on:
@@ -56,7 +56,7 @@ services:
       DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
       DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
-    restart: always
+    restart: on-failure
     # Similar to AWS, tells you what service needs to be up before this service
     # Maps out the dependencies
     depends_on:
@@ -68,7 +68,7 @@ services:
   # storage, and event log storage. In a real deployment, you might choose to
   # remove this in favor of an RDS instance.
   postgresql:
-    image: postgres:latest
+    image: postgres:14.1
     container_name: dagster-db
     environment:
       # Hostname needs to always be the name of the service (i.e., postgresql)
@@ -79,7 +79,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - 5405:5432 #Note change, see details below
-    restart: "always"
+    restart: on-failure
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
 
