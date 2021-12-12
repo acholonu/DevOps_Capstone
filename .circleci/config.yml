@@ -236,7 +236,7 @@ jobs:
           show-kubectl-command: true
           watch-rollout-status: true
       - aws-eks/delete-cluster:
-          cluster_name: <<parameters.cluster-name>>
+          cluster-name: <<parameters.cluster-name>>
           when: on_fail
             
 
