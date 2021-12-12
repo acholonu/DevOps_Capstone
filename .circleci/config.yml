@@ -265,7 +265,8 @@ jobs:
           show-kubectl-command: true
           watch-rollout-status: true
       # Destroy cluster on fail
-      - cleanup-eks
+      - cleanup-eks:
+          cluster-name: <<parameters.cluster-name>>
             
 
 # Workflows
