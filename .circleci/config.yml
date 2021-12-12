@@ -202,6 +202,10 @@ jobs:
       - run:
           name: Test cluster
           command: |
+            echo "@@@ Nodes"
+            kubectl get nodes
+
+            echo -e "\n@@@ Services"
             kubectl get services
       # Destroy cluster on fail
       - delete-cluster:
@@ -209,27 +213,37 @@ jobs:
           wait: true 
           when: on_fail
 
-  # Reference: https://circleci.com/developer/orbs/orb/circleci/kubernetes#usage-deployment
-  create-update:
-    docker:
-      - image: 'cimg/base:stable'
+  # Reference:
+  # https://circleci.com/docs/2.0/configuration-cookbook/#using-amazon-elastic-container-service-for-kubernetes-amazon-eks 
+  # https://circleci.com/developer/orbs/orb/circleci/kubernetes#usage-deployment
+  eks-deploy-resources:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
     steps:
       - checkout
       - kubernetes/install-kubectl
+      # TO DO: Create yaml files that describe the resource
+      # Create Stateful Deployment Resource
+      # Create Service Resource
       - kubernetes/create-or-update-resource:
           get-rollout-status: true
           resource-file-path: tests/nginx-deployment/deployment.yaml #Fix this Path
-          resource-name: deployment/nginx-deployment # Fix this path
+          resource-name: deployment/nginx-deployment # <Type of Resource>/<Name>
           show-kubectl-command: true
+          watch-rollout-status: true
       - aws-eks/delete-cluster:
-          cluster_name:
+          cluster_name: <<parameters.cluster-name>>
           when: on_fail
             
 
 # Workflows
 # ----------------------
 workflows:
-  default:
+  deployment:
     jobs:
       - lint
 
@@ -245,7 +259,7 @@ workflows:
       # It also creates the default VPC for the cluster
       # Reference: https://eksctl.io/usage/vpc-networking/
       - aws-eks/create-cluster:
-          cluster-name: dagster-eks
+          cluster-name: dagster-eks-cluster
           show-eksctl-command: true
           tags: "Owner=UgochiJ, application=udacity-app, purpose=learning"
           requires:
@@ -254,8 +268,8 @@ workflows:
              branches:
                only: [main, develop, uj_deploy]
 
-      - initiate-cluster:
-          cluster-name: dagster-eks
+      - eks-deploy-resources:
+          cluster-name: dagster-eks-cluster
           requires:
             - aws-eks/create-cluster
           filters:
