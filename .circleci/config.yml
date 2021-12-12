@@ -219,21 +219,21 @@ jobs:
       # Destroy cluster on fail
       - delete-cluster:
           when: on_fail
-      - destroy-environment
 
-    create-update:
-      docker:
-        - image: 'cimg/base:stable'
-      steps:
-        - checkout
-        - kubernetes/install-kubectl
-        - run:
-          name: 
-        - kubernetes/create-or-update-resource:
-            get-rollout-status: true
-            resource-file-path: tests/nginx-deployment/deployment.yaml #Fix this Path
-            resource-name: deployment/nginx-deployment # Fix this path
-            show-kubectl-command: true
+  # Reference: https://circleci.com/developer/orbs/orb/circleci/kubernetes#usage-deployment
+  create-update:
+    docker:
+      - image: 'cimg/base:stable'
+    steps:
+      - checkout
+      - kubernetes/install-kubectl
+      - kubernetes/create-or-update-resource:
+          get-rollout-status: true
+          resource-file-path: tests/nginx-deployment/deployment.yaml #Fix this Path
+          resource-name: deployment/nginx-deployment # Fix this path
+          show-kubectl-command: true
+      - delete-cluster:
+          when: on_fail
             
 
 # Workflows
