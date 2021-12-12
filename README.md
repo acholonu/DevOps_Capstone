@@ -53,6 +53,7 @@ Simple Flask app that prints backend results to screen.
 - [Creating a Jumpbox](https://aws.amazon.com/premiumsupport/knowledge-center/rds-connect-ec2-bastion-host/)
 - [Selenium Testing](https://www.selenium.dev/documentation/)
 - [Build A Docker Image in CircleCI](https://circleci.com/blog/how-to-build-a-docker-image-on-circleci-2-0/)
+- [Using DockerHub as the Registry for Amazon EKS](https://stackoverflow.com/questions/49032812/how-to-pull-image-from-dockerhub-in-kubernetes)
 
 ---
 

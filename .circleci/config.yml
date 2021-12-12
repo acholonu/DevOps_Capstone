@@ -7,6 +7,7 @@ orbs:
   aws-eks: circleci/aws-eks@1.1.0
   browser-tools: circleci/browser-tools@1.2.3
   kubernetes: circleci/kubernetes@0.12.1
+  docker: circleci/docker@2.0.1
 
 # These are custom functions that I use in other jobs
 commands:
@@ -151,7 +152,7 @@ jobs:
             password: $DOCKER_ACCESS_CODE
     working_directory: ~/project/dagster
     environment:
-      VERSION: <<pipeline.number>>
+      VERSION: v.1.<<pipeline.number>>
     steps:
       - checkout
       
@@ -184,7 +185,10 @@ jobs:
             cd dagster
             docker-compose -f docker-compose-prod.yml up -d
 
-            URL=0.0.0.0:3000
+      - run: 
+          name: Test Containers
+          command: |
+            URL=localhost:3000
 
             # Check if can connect
             curl $URL
@@ -207,13 +211,14 @@ jobs:
                 exit 1
             fi
             docker-compose down
-      
+
       - run:
           name: Deploy to Docker Repository
           command: |
             echo "Deploying to Docker"
-            docker-compose -f docker-compose-prod.yml push --ignore-push-failures
-            
+            docker-compose -f docker-compose-prod.yml push
+
+  # Jobs for Continuous Deployment          
   initiate-cluster:
     executor: aws-eks/python3
     parameters:
@@ -308,6 +313,8 @@ workflows:
       # Manually approve cleanup
       - hold:
          type: approval
+         requires:
+            - eks-deploy-resources
 
       - aws-eks/delete-cluster:
           cluster-name: dagster-eks-cluster
