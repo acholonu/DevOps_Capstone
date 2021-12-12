@@ -133,7 +133,6 @@ jobs:
   build-and-deploy-image:
     docker:
       - image: cimg/python:3.9.7
-      #- image: docker:20.10.11-git
         auth:
             username: $DOCKER_USERNAME
             password: $DOCKER_ACCESS_CODE
@@ -144,12 +143,6 @@ jobs:
       - checkout
       
       - aws-cli/install # Works only for python images, need install python 
-
-      #- run: sudo chown -R circleci:circleci /usr/local/bin
-
-      # - restore_cache:
-      #     keys:
-      #       - v1-{{ .Branch }}-
             
       - setup_remote_docker
 
@@ -207,111 +200,26 @@ jobs:
           command: |
             echo "Deploying to Docker"
             docker-compose -f docker-compose-prod.yml push --ignore-push-failures
-
-
-      # - run:
-      #     name: Save Docker image layer cache
-      #     command: |
-      #       sudo mkdir -p /caches
-      #       sudo docker save -o /caches/dagster-app.tar dagster-app:v1.${CIRCLE_WORKFLOW_ID}
-
-      # - save_cache:
-      #     key: v1-{{ .Branch }}-{{ epoch }}
-      #     paths:
-      #       - /caches/dagster-app.tar
-      #       - /usr/local/bin # Binaries of dependencies
             
-  test_ui:
-    docker:
-      - image: cimg/python:3.9.7
+  initiate-cluster:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
     steps:
-      - checkout
-      # To enable docker commands need the following step
-      - setup_remote_docker:
-          version: 20.10.7
-      - run: sudo chown -R circleci:circleci /usr/local/bin
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "pyproject.toml" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
-      - browser-tools/install-chrome
-      - browser-tools/install-chromedriver
+      - kubernetes/install
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: dagster-eks
       - run:
-          name: Check Chrome Install
+          name: Test cluster
           command: |
-            google-chrome --version
-            chromedriver --version
-          
-      - run: 
-          name: Build Dagster Image
-          command: |
-            # Your stack command code here
-            echo "Building image..."
-
-      - run: 
-          name: Run Container
-          command: |
-            echo "Starting container"
-
-      - run:
-          name: Download Selenium Server
-          command: |
-            # sudo apt install wget # If not already installed uncomment
-            #url -O https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.0.jar
-            wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.0.jar
-            
-      - run:
-          name: Start Selenium
-          command: |
-            java -jar selenium-server-4.1.0.jar -log test-reports/selenium.log
-          background: true
-      - run: 
-          name: Test Dagster Site
-          command: |
-            # Smoke Test for Dagster Site
-            echo "Starting smoke test..."
-  
-  deploy_network_infrastructure:
-    docker:
-      - image: cimg/python:3.9.7
-    steps: 
-      - checkout
-      - aws-cli/install:
-          override-installed: true
-      - aws-cli/setup:
-          aws-region: $AWS_DEFAULT_REGION
-          aws-access-key-id: $AWS_ACCESS_KEY_ID
-          aws-secret-access-key: $AWS_SECRET_ACCESS_KEY
-          profile-name: $AWS_PROFILE_NAME
-      - run: 
-          name: Deploy stack
-          command: |
-            # Your stack command code here
-            echo "Deploying stack..."
-            cd cloudformation
-            ./create_stack $AWS_PROFILE_NAME dagster-network network.yaml network_parameters.json
+            kubectl get services
+      # Destroy cluster on fail
+      - delete-cluster:
+          when: on_fail
       - destroy-environment
-
-    test-cluster:
-      executor: aws-eks/python3
-      parameters:
-        cluster-name:
-          description: |
-            Name of the EKS cluster
-          type: string
-      steps:
-        - kubernetes/install
-        - aws-eks/update-kubeconfig-with-authenticator:
-            cluster-name: dagster-eks
-        - run:
-            name: Test cluster
-            command: |
-              kubectl get services
-        # Destroy cluster on fail
-        - delete-cluster:
-            when: on_fail
-        - destroy-environment
 
     create-update:
       docker:
@@ -343,25 +251,20 @@ workflows:
 
       # END OF CONTINUOUS INTEGRATION, START CONTINUOUS DELIVERY
 
-      # Want everything in my VPC, so deploying aws infrastructure
-      - deploy_network_infrastructure:
-          requires: [build-and-deploy-image]
-          filters:
-             branches:
-               only: [main, develop, uj_deploy]
-
       # Create EKS cluster (if not already created)
+      # It also creates the default VPC for the cluster
+      # Reference: https://eksctl.io/usage/vpc-networking/
       - aws-eks/create-cluster:
           cluster-name: dagster-eks
           show-eksctl-command: true
           tags: "Owner=UgochiJ, application=udacity-app, purpose=learning"
           requires:
-            - deploy_network_infrastructure
+            - build-and-deploy-image
           filters:
              branches:
                only: [main, develop, uj_deploy]
 
-      - test-cluster:
+      - initiate-cluster:
           cluster-name: dagster-eks
           requires:
             - aws-eks/create-cluster

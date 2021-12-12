@@ -74,3 +74,4 @@ archive/
 
 postgres-data/
 logs/
+.pytest_cache/
