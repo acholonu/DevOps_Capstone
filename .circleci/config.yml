@@ -20,7 +20,7 @@ commands:
           channel: alerts # Slack channel to display to
 
   # Function 2
-  rollback-deployment:
+  rollback-container-build:
     description: Rollback of Deployment
     parameters:
       # Add parameter here
@@ -39,19 +39,6 @@ commands:
             # Your code here
             # Revert to previous container as the latest.
             # Delete the new container
-
-
-  # Function 3
-  destroy-environment:
-    description: Destroy Cloudformation Stacks Given A Workflow ID.
-    steps:
-      - run:
-          name: Destroy Environments
-          when: on_fail
-          command: |
-            # Use for roll back
-            # Delete any infrastructure created.
-            aws cloudformation delete-stack --stack-name "dagster-network-stack-<<pipeline.number>>"
 
 jobs:
   lint:
@@ -211,13 +198,15 @@ jobs:
     steps:
       - kubernetes/install
       - aws-eks/update-kubeconfig-with-authenticator:
-          cluster-name: dagster-eks
+          cluster-name: <<parameters.cluster-name>>
       - run:
           name: Test cluster
           command: |
             kubectl get services
       # Destroy cluster on fail
       - delete-cluster:
+          cluster-name: <<parameters.cluster-name>>
+          wait: true 
           when: on_fail
 
   # Reference: https://circleci.com/developer/orbs/orb/circleci/kubernetes#usage-deployment
@@ -232,7 +221,8 @@ jobs:
           resource-file-path: tests/nginx-deployment/deployment.yaml #Fix this Path
           resource-name: deployment/nginx-deployment # Fix this path
           show-kubectl-command: true
-      - delete-cluster:
+      - aws-eks/delete-cluster:
+          cluster_name:
           when: on_fail
             
 
