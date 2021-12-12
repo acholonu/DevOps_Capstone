@@ -208,9 +208,12 @@ jobs:
             echo -e "\n@@@ Services"
             kubectl get services
       # Destroy cluster on fail
-      - delete-cluster:
-          cluster-name: <<parameters.cluster-name>>
-          wait: true 
+      - run:
+          name: Delete Cluster
+          command: |
+            # This take approximately 15 minutes to complete
+            # View progress on Cloudformation console
+            eksctl delete cluster --name=<<parameters.cluster-name>> --wait=true
           when: on_fail
 
   # Reference:
@@ -235,8 +238,13 @@ jobs:
           resource-name: deployment/nginx-deployment # <Type of Resource>/<Name>
           show-kubectl-command: true
           watch-rollout-status: true
-      - aws-eks/delete-cluster:
-          cluster-name: <<parameters.cluster-name>>
+      # Destroy cluster on fail
+      - run:
+          name: Delete Cluster
+          command: |
+            # This take approximately 15 minutes to complete
+            # View progress on Cloudformation console
+            eksctl delete cluster --name=<<parameters.cluster-name>> --wait=true
           when: on_fail
             
 
@@ -281,7 +289,7 @@ workflows:
          type: approval
 
       - aws-eks/delete-cluster:
-          cluster-name: dagster-eks
+          cluster-name: dagster-eks-cluster
           requires:
             - aws-eks/create-cluster
           filters:
