@@ -21,15 +21,11 @@ commands:
 
   # Function 2
   rollback-container-build:
-    description: Rollback of Deployment
+    description: Rollback of Container Build to last working image
     parameters:
       # Add parameter here
       docker_image_tag:
         type: string
-        default: latest
-      docker_container_name:
-        type: string
-        default: NONE
     steps:
       - checkout
       - run:
@@ -37,8 +33,38 @@ commands:
           when: on_fail
           command: |
             # Your code here
+            echo "Rolling back latest container to last working container"
             # Revert to previous container as the latest.
             # Delete the new container
+            exit 1
+
+  # Function 3
+  cleanup-eks:
+    description: Clean-up and destroy EKS cluster
+    parameters:
+      cluster-name:
+        type: string
+    steps:
+      - checkout
+      - run:
+          name: Undeploy Applications
+          when: on_fail
+          command: |
+            echo "Undeploying Applications"
+            cd kubernetes
+            kubectl delete -f dagster-service.yaml
+            kubectl delete -f dagster-deployment.yaml
+            exit 1
+      - run: 
+          name: Delete Cluster
+          when: on_fail
+          command: |
+            echo "Deleting Cluster"
+            eksctl delete cluster --name=<<parameters.cluster-name>>
+            exit 1
+
+
+
 
 jobs:
   lint:
@@ -235,17 +261,11 @@ jobs:
       - kubernetes/create-or-update-resource:
           get-rollout-status: true
           resource-file-path: tests/nginx-deployment/deployment.yaml #Fix this Path
-          resource-name: deployment/nginx-deployment # <Type of Resource>/<Name>
+          resource-name: deployment/dagster-deployment # <Type of Resource>/<Name>
           show-kubectl-command: true
           watch-rollout-status: true
       # Destroy cluster on fail
-      - run:
-          name: Delete Cluster
-          command: |
-            # This take approximately 15 minutes to complete
-            # View progress on Cloudformation console
-            eksctl delete cluster --name=<<parameters.cluster-name>> --wait=true
-          when: on_fail
+      - cleanup-eks
             
 
 # Workflows
