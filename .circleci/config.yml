@@ -181,7 +181,7 @@ jobs:
             echo "Building image..."
 
             echo "VERSION=${VERSION}"
-           
+            ls -l
             docker-compose -f docker-compose-prod.yml up
 
             # Check if can connect
