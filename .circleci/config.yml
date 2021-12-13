@@ -185,47 +185,12 @@ jobs:
 
             echo "VERSION=${VERSION}"
             ls -l
-            docker-compose -f docker-compose-prod.yml up -d
-
-            # Check if can connect
-            URL=localhost:3000
-            curl $URL
-
-            if curl $URL
-            then
-                echo "SUCCESS(+): Connected to Dagster UI\n"
-            else
-                echo "FAILURE(-): Failed to connect to Dagster"
-                exit 1
-            fi
+            docker-compose -f docker-compose-prod.yml up -d'
+            docker-compose images
+            docker-compose ps
             docker-compose down
-
-      # - run: 
-      #     name: Test Containers
-      #     command: |
-      #       URL=localhost:3000
-
-      #       # Check if can connect
-      #       curl $URL
-
-      #       if curl $URL
-      #       then
-      #           echo "SUCCESS(+): Connected to Dagster UI\n"
-      #       else
-      #           echo "FAILURE(-): Failed to connect to Dagster"
-      #           exit 1
-      #       fi
-
-      #       # Check if it found relevant word.
-      #       if curl $URL | grep "Dagit"
-      #       then
-      #           echo "SUCCESS(++): found $2 in document: $URL\n"
-      #           exit 0
-      #       else
-      #           echo "FAILURE(--): Failed to find $2 in document: $URL"
-      #           exit 1
-      #       fi
-      #       docker-compose down
+            docker-compose ps
+            docker-compose images
 
       - run:
           name: Deploy to Docker Repository
