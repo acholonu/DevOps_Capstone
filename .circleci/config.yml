@@ -185,7 +185,7 @@ jobs:
 
             echo "VERSION=${VERSION}"
             ls -l
-            docker-compose -f docker-compose-prod.yml up -d'
+            docker-compose -f docker-compose-prod.yml up -d
             docker-compose images
             docker-compose ps
             docker-compose down
