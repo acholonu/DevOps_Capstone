@@ -2,6 +2,12 @@
 
 The goal of this project is to deploy a microsoft service onto a kubernetes cluster using best practices in DevOps.  I will deploy the dagster hello world microservice tutorial.
 
+## Status Badge
+
+[![acholonu](https://circleci.com/gh/acholonu/DevOps_Capstone.svg?style=svg)](https://app.circleci.com/pipelines/github/acholonu/DevOps_Capstone?filter=all)
+
+Reference on how to make a [status badge](https://circleci.com/docs/2.0/status-badges/)
+
 ## Simple Micorservice
 
 - Flask app that triggers dagster container to execute a workflow.  The result of that workflow is then printed to the screen.
