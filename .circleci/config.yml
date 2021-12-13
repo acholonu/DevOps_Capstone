@@ -177,12 +177,15 @@ jobs:
       - run: 
           name: Build and Test Dagster Images
           command: |
+            
+            cd dagster
+
             # Your stack command code here
             echo "Building image..."
 
             echo "VERSION=${VERSION}"
             ls -l
-            docker-compose -f docker-compose-prod.yml up
+            docker-compose -f docker-compose-prod.yml up -d
 
             # Check if can connect
             URL=localhost:3000
@@ -227,6 +230,7 @@ jobs:
       - run:
           name: Deploy to Docker Repository
           command: |
+            cd dagster
             echo "Deploying to Docker"
             docker login -u $DOCKER_USERNAME -p $DOCKER_ACCESS_CODE
             docker-compose -f docker-compose-prod.yml push
