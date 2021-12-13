@@ -257,18 +257,65 @@ jobs:
         description: |
           Name of the EKS cluster
         type: string
+    working_directory: ~/project/kubernetes
     steps:
       - checkout
+      - aws-cli/install
       - kubernetes/install-kubectl
       # TO DO: Create yaml files that describe the resource
       # Create Stateful Deployment Resource
       # Create Service Resource
+      - run:
+          name: Change Namespace
+          command: |
+            kubectl create ns production
+
+      # Reference: https://stackoverflow.com/questions/49032812/how-to-pull-image-from-dockerhub-in-kubernetes
+      - run: 
+          name: Link DockerHub repo to EKS
+          command: |
+            kubectl create secret docker-registry regcred \
+            --docker-username=$DOCKER_USERNAME \
+            --docker-password=$DOCKER_ACCESS_CODE \
+            --docker-email=$DOCKER_EMAIL \
+            --namespace=production
+      
+      - run: 
+          name: Create Service Account in Cluster
+          command: |
+            kubectl apply -f dagster-service-account.yaml
+
+      - run: 
+          name: Check Service Account is created
+          command: |
+            kubectl get sa production-service-account --namespace=dev
+
+      - run: 
+          name: Create EBS Volume for Kubernetes if it doesn't exist
+          command: |
+            # Check That volume doesn't exist
+            #@@@ Fix!!!
+
+            # Create Volume
+            aws ec2 create-volume --availability-zone=$AWS_DEFAULT_REGION --size=10 --volume-type=gp2
+
       - kubernetes/create-or-update-resource:
           get-rollout-status: true
-          resource-file-path: tests/nginx-deployment/deployment.yaml #Fix this Path
-          resource-name: deployment/dagster-deployment # <Type of Resource>/<Name>
+          resource-file-path: kubernetes/dagster-deployment.yaml # path in git directory
+          resource-name: deployment/dagster-deployment.yaml # <Type of Resource>/<Name>
           show-kubectl-command: true
           watch-rollout-status: true
+
+      - run: 
+          name: Expose to the public through load balancer
+          command: |
+            kubectl expose deployment dagster-deployment \
+            --namespace=production \
+            --type=LoadBalancer \
+            --name=dagster-service
+
+            kubectl get service/dagster-service --namespace=production
+      #Using your browser, navigate to the DNS endpoint specified in the EXTERNAL-IP 
       # Destroy cluster on fail
       - cleanup-eks:
           cluster-name: <<parameters.cluster-name>>

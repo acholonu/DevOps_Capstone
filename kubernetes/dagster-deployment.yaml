@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Deployment #Or Pod
+metadata:
+  name: dagster
+  namespace: production
+  labels: 
+    app: dagster 
+spec:
+  restartPolicy: On Failure
+  serviceAccountName: production-service-account
+  selector:
+    matchLabels:
+      app: dagster
+  strategy: # What does this mean?
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: dagster
+    spec:
+      containers:
+      # Dagster UI
+        - name: dagit-container
+          image: $REGISTRY_URL/dagit:latest
+          imagePullPolicy: Always
+          # volumeMounts:
+          # - name: shared-ebs-data
+          #   mountPath: /usr/share/dagster
+
+      # Helper Pods
+        # Dagster Daemon
+        - name: dagster-daemon-container
+          image: $REGISTRY_URL/dagster_daemon:latest
+          imagePullPolicy: Always # Don't use cache, always pull new
+          volumeMounts:
+            - name: logs-data
+              mountPath: /logs
+
+        # Postgres System database
+        - name: postgres-container
+          image: postgres:14.1
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: share-ebs-volume
+              mountPath: /postgres_data
+          env: 
+            - name: POSTGRES_PASSWORD
+              value: $POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              value: $POSTGRES_DB
+            - name: POSTGRES_USER
+              value: $POSTGRES_USER
+            - name: POSTGRES_HOSTNAME
+              value: $POSTGRES_HOSTNAME
+  ports:
+    - port: 3000
+      name: dagit
+    - port: 5432
+      name: postgres
+  volumes:
+    - name: logs-data
+      emptyDir: {}
+    - name: share-ebs-volume
+      # This AWS EBS volume must already exist.
+      awsElasticBlockStore:
+        volumeID: "<volume id>"
+        fsType: ext4
