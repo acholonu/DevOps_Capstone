@@ -1,21 +1,23 @@
+# Reference: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
 apiVersion: v1
-kind: Deployment #Or Pod
+kind: Deployment
 metadata:
-  name: dagster
+  name: dagster-deployment # Deployment Name
   namespace: production
   labels: 
     app: dagster 
 spec:
-  restartPolicy: On Failure
-  serviceAccountName: production-service-account
-  selector:
+  restartPolicy: OnFailure
+  #serviceAccountName: production-service-account # Don't need this because my repository is public
+  selector: # Tells the deployment which pods to manage. Must be labelled as dagster
     matchLabels:
       app: dagster
-  strategy: # What does this mean?
-    type: Recreate
+  replicas: 2 # how many replicas of the pod that should be created
+
+  # Creating the pod with the containers
   template:
     metadata:
-      labels:
+      labels: # labels this pod as dagster
         app: dagster
     spec:
       containers:
@@ -23,6 +25,9 @@ spec:
         - name: dagit-container
           image: $REGISTRY_URL/dagit:latest
           imagePullPolicy: Always
+          ports: 
+            - containerPort: 3000
+            - name: dagit
           # volumeMounts:
           # - name: shared-ebs-data
           #   mountPath: /usr/share/dagster
@@ -34,12 +39,16 @@ spec:
           imagePullPolicy: Always # Don't use cache, always pull new
           volumeMounts:
             - name: logs-data
-              mountPath: /logs
+              mountPath: /dagster-data
+              subPath: /logs
 
         # Postgres System database
         - name: postgres-container
           image: postgres:14.1
           imagePullPolicy: Always
+          ports: 
+            - containerPort: 5432
+            - name: postgres
           volumeMounts:
             - name: share-ebs-volume
               mountPath: /postgres_data
@@ -52,11 +61,6 @@ spec:
               value: $POSTGRES_USER
             - name: POSTGRES_HOSTNAME
               value: $POSTGRES_HOSTNAME
-  ports:
-    - port: 3000
-      name: dagit
-    - port: 5432
-      name: postgres
   volumes:
     - name: logs-data
       emptyDir: {}

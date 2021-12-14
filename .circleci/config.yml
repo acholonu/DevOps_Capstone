@@ -185,12 +185,19 @@ jobs:
 
             echo "VERSION=${VERSION}"
             ls -l
+
+            echo "DOCKER COMPOSE UP"
             docker-compose -f docker-compose-prod.yml up -d
+
+            echo "See images that are built"
             docker-compose images
+
+            echo "See containers running"
             docker-compose ps
+
+            echo "Stop Containers"
             docker-compose down
             docker-compose ps
-            docker-compose images
 
       - run:
           name: Deploy to Docker Repository
@@ -315,6 +322,14 @@ workflows:
       
       - build-and-deploy-image:
           requires: [test_code]
+
+      - hold:
+         type: approval
+         requires:
+            - build-and-deploy-images
+         filters:
+           branches: 
+            ignore: [main, develop]
 
       # END OF CONTINUOUS INTEGRATION, START CONTINUOUS DELIVERY
 
