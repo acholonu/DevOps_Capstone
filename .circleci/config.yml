@@ -147,9 +147,9 @@ jobs:
   build-and-deploy-image:
     docker:
       - image: cimg/python:3.9.7
-        # auth:
-        #     username: $DOCKER_USERNAME
-        #     password: $DOCKER_ACCESS_CODE
+        auth:
+            username: $DOCKER_USERNAME
+            password: $DOCKER_ACCESS_CODE
     working_directory: ~/project/dagster
     environment:
       VERSION: v.1.<<pipeline.number>>
@@ -198,8 +198,9 @@ jobs:
             echo "Stop Containers"
             docker-compose -f docker-compose-prod.yml down --rmi all
             docker ps
+            docker images
 
-            echo "Push to Repository"
+            echo "@@@Push to Repository"
             docker-compose -f docker-compose-prod.yml push
             docker tag $DOCKER_USERNAME/dagit:$VERSION $DOCKER_USERNAME/dagit:latest
             docker image push $DOCKER_USERNAME/dagit:latest
