@@ -196,7 +196,7 @@ jobs:
             docker ps
 
             echo "Stop Containers"
-            docker-compose -f docker-compose-prod.yml down --rmi all
+            docker-compose -f docker-compose-prod.yml down
             docker ps
             docker images
 
