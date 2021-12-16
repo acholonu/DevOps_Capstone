@@ -201,8 +201,9 @@ jobs:
             docker images
 
             echo "@@@Push to Repository"
-            docker-compose -f docker-compose-prod.yml push
+            #docker-compose -f docker-compose-prod.yml push
             docker tag $DOCKER_USERNAME/dagit:$VERSION $DOCKER_USERNAME/dagit:latest
+            docker image push $DOCKER_USERNAME/dagit:$VERSION
             docker image push $DOCKER_USERNAME/dagit:latest
 
       # - run:
