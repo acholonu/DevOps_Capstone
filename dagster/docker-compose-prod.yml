@@ -29,59 +29,62 @@ services:
     image: "${REGISTRY_URL}/dagit:${VERSION}" # Name of the image built
     container_name: dagit-UI
     environment:
-      DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
-      DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
-      DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
+      LOCAL_COMPUTE_LOG_MANAGER_DIRECTORY: ${LOCAL_COMPUTE_LOG_MANAGER_DIRECTORY}
+      # DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
+      # DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
+      # DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
     restart: on-failure
     ports:
       - "3000:3000"
-    depends_on:
-      - postgresql
+    # depends_on:
+    #   - postgresql
       #- user_code
 
 # This service runs the dagster-daemon process, which is responsible for
   # taking runs off of the queue and launching them, as well as creating
   # runs from schedules or sensors. It is a long running process.
-  dagster_daemon:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-      target: dagster
-    image: "$REGISTRY_URL/dagster_daemon:${VERSION}"
-    container_name: dagster-daemon
-    command: "dagster-daemon run" # Starts the dagster daemon
-    environment:
-      DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
-      DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
-      DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
-    restart: on-failure
-    # Similar to AWS, tells you what service needs to be up before this service
-    # Maps out the dependencies
-    depends_on:
-      - postgresql
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+  # dagster_daemon:
+  #   build:
+  #     context: .
+  #     dockerfile: ./Dockerfile
+  #     target: dagster
+  #   image: "$REGISTRY_URL/dagster_daemon:${VERSION}"
+  #   container_name: dagster-daemon
+  #   command: "dagster-daemon run" # Starts the dagster daemon
+  #   environment:
+  #     LOCAL_COMPUTE_LOG_MANAGER_DIRECTORY: ${LOCAL_COMPUTE_LOG_MANAGER_DIRECTORY}
+  #     # DAGSTER_POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
+  #     # DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
+  #     # DAGSTER_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #     # DAGSTER_POSTGRES_DB: ${POSTGRES_DB}
+  #   restart: on-failure
+  #   # Similar to AWS, tells you what service needs to be up before this service
+  #   # Maps out the dependencies
+  #   depends_on:
+  #     - dagit
+  #     #- postgresql
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
 
 # This service runs the postgres DB used by dagster for run storage, schedule
   # storage, and event log storage. In a real deployment, you might choose to
   # remove this in favor of an RDS instance.
-  postgresql:
-    image: postgres:14.1
-    container_name: dagster-db
-    environment:
-      # Hostname needs to always be the name of the service (i.e., postgresql)
-      # This way the two services (postgresql and dagit can always communicate)
-      POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME} 
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - 5405:5432 #Note change, see details below
-    restart: on-failure
-    volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+  # postgresql:
+  #   image: postgres:14.1
+  #   container_name: dagster-db
+  #   environment:
+  #     # Hostname needs to always be the name of the service (i.e., postgresql)
+  #     # This way the two services (postgresql and dagit can always communicate)
+  #     POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME} 
+  #     POSTGRES_USER: ${POSTGRES_USER}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #     POSTGRES_DB: ${POSTGRES_DB}
+  #   ports:
+  #     - 5405:5432 #Note change, see details below
+  #   restart: on-failure
+    #volumes:
+    #  - ./postgres-data:/var/lib/postgresql/data
 
     # Details on postgresql service
     # ------------------------------

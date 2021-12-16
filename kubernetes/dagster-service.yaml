@@ -6,8 +6,8 @@ spec:
   ports:
     - port: 3000
       name: dagit
-    - port: 5432
-      name: postgres
+    # - port: 5432
+    #   name: postgres
   selector:
     app: dagster
   clusterIP: None
