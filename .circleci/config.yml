@@ -147,9 +147,9 @@ jobs:
   build-and-deploy-image:
     docker:
       - image: cimg/python:3.9.7
-        # auth:
-        #   username: $DOCKER_USERNAME
-        #   password: $DOCKER_ACCESS_CODE
+        auth:
+          username: $DOCKER_USERNAME
+          password: $DOCKER_ACCESS_CODE
     working_directory: ~/project/dagster
     environment:
       VERSION: v.1.<<pipeline.number>>
