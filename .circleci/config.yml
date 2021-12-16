@@ -326,7 +326,7 @@ workflows:
       - hold:
          type: approval
          requires:
-            - build-and-deploy-images
+            - build-and-deploy-image
          filters:
            branches: 
             ignore: [main, develop]
