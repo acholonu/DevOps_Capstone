@@ -190,14 +190,14 @@ jobs:
             docker-compose -f docker-compose-prod.yml up -d --force-recreate --build 
 
             echo "See images that are built"
-            docker-compose images
+            docker images
 
             echo "See containers running"
-            docker-compose ps
+            docker ps
 
             echo "Stop Containers"
             docker-compose down
-            docker-compose ps
+            docker ps
 
       - run:
           name: Deploy to Docker Repository
@@ -206,6 +206,8 @@ jobs:
             echo "Deploying to Docker"
             docker login -u $DOCKER_USERNAME -p $DOCKER_ACCESS_CODE
             docker-compose -f docker-compose-prod.yml push
+            docker tag $DOCKER_USERNAME/dagit:$VERSION $DOCKER_USERNAME/dagit:latest
+            docker image push $DOCKER_USERNAME/dagit:latest
 
   # Jobs for Continuous Deployment          
   initiate-cluster:
