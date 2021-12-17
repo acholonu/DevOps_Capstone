@@ -348,7 +348,7 @@ workflows:
           image: $DOCKER_USERNAME/dagit
           docker-username: DOCKER_USERNAME
           docker-password: DOCKER_ACCESS_CODE
-          docker-context: ~/dagster/
+          docker-context: ~/dagster
           tag: $VERSION
           requires: [build-and-test-image]
 
