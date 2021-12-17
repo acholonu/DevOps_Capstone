@@ -348,14 +348,14 @@ workflows:
           image: $DOCKER_USERNAME/dagit
           docker-username: DOCKER_USERNAME
           docker-password: DOCKER_PASSWORD
-          tags: $VERSION,latest
+          tag: $VERSION,latest
           requires: [build-and-deploy-image]
 
 
       - hold:
          type: approval
          requires:
-            - build-and-deploy-image
+            - build-and-test-image
          filters:
            branches: 
             ignore: [main, develop]
@@ -370,7 +370,7 @@ workflows:
           show-eksctl-command: true
           tags: "Owner=UgochiJ, application=udacity-app, purpose=learning"
           requires:
-            - build-and-deploy-image
+            - build-and-test-image
           filters:
              branches:
                only: [main, develop, uj_deploy]
