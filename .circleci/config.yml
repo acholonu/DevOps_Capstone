@@ -346,8 +346,8 @@ workflows:
 
       - docker/publish:
           image: $DOCKER_USERNAME/dagit
-          docker-username: $DOCKER_USERNAME
-          docker-password: $DOCKER_PASSWORD
+          docker-username: DOCKER_USERNAME
+          docker-password: DOCKER_PASSWORD
           tags: $VERSION,latest
           requires: [build-and-deploy-image]
 
