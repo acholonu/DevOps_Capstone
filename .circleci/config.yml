@@ -348,7 +348,7 @@ workflows:
           image: $DOCKER_USERNAME/dagit
           docker-username: DOCKER_USERNAME
           docker-password: DOCKER_ACCESS_CODE
-          tag: v.1.1.2,latest
+          tag: $VERSION
           requires: [build-and-test-image]
 
 
