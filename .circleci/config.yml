@@ -348,6 +348,7 @@ workflows:
           image: $DOCKER_USERNAME/dagit
           docker-username: DOCKER_USERNAME
           docker-password: DOCKER_ACCESS_CODE
+          docker-context: /home/circleci/project/dagster
           tag: $VERSION
           requires: [build-and-test-image]
 
