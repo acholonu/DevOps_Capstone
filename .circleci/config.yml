@@ -198,14 +198,11 @@ jobs:
             docker images 
 
             echo "@@@Push to Repository"
+            docker login -u $DOCKER_USERNAME -p $DOCKER_ACCESS_CODE
             #docker-compose -f docker-compose-prod.yml push
             docker tag $DOCKER_USERNAME/dagit:$VERSION $DOCKER_USERNAME/dagit:latest
-            #docker image push 
-            #docker image push $DOCKER_USERNAME/dagit:latest
-
-      - docker/push:
-          image: $DOCKER_USERNAME/dagit
-          tag: $VERSION,latest
+            docker image push  $DOCKER_USERNAME/dagit:$VERSION
+            docker image push $DOCKER_USERNAME/dagit:latest
 
       # - run:
       #     name: Deploy to Docker Repository
