@@ -1,7 +1,10 @@
 # syntax=docker/dockerfile:1
 
-FROM cimg/python:3.9.7 AS base_dagster
+#FROM cimg/python:3.9.7 AS dagit
+FROM python:3.9.9-slim AS dagster
 
+LABEL microservice="dagster"
+LABEL service_type="application"
 LABEL role="data-processing"
 LABEL purpose="Data processing of client schemas and schema changes."
 LABEL reference="https://docs.dagster.io/deployment/dagster-instance#compute-log-storage"
@@ -27,7 +30,8 @@ USER build_user
 # I am mirroring local file structure to container's file structure
 RUN mkdir -p /opt/dagster/dagster_capstone \
     /opt/dagster/dagster_home \
-    /opt/dagster/local
+    /opt/dagster/local \
+    /opt/dagster/logs
 
 # Copy your code and workspace to /opt/dagster/app
 #COPY workspace.yaml /opt/dagster/dagster_capstone/
@@ -38,8 +42,8 @@ COPY dagster_capstone/ /opt/dagster/dagster_capstone/
 
 ENV DAGSTER_HOME=/opt/dagster/dagster_home/
 ENV POSTGRES_USER=$POSTGRES_USER
-ENV POSTGRES_HOST=$POSTGRES_HOST
-ENV POSTGRES_DATABASE=$POSTGRES_DATABASE
+ENV POSTGRES_HOSTNAME=$POSTGRES_HOSTNAME
+ENV POSTGRES_DB=$POSTGRES_DB
 ENV POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 ENV S3_BUCKET=$S3_BUCKET
 ENV S3_LOG_PREFIX=$S3_LOG_PREFIX
@@ -49,8 +53,23 @@ COPY dagster.yaml /opt/dagster/dagster_home/
 
 WORKDIR /opt/dagster/
 
+FROM dagster AS dagit
+LABEL role="Graphical Interface: Admin Tool for Dagster"
+
 EXPOSE 3000
 # Opening the Dagster UI
 # Using 0.0.0.0 because I want any IP address on the machine, when using port 3000
 # to go to the dagster app
-ENTRYPOINT ["dagit", "-h", "0.0.0.0", "-p", "3000"]
+# An ‘entrypoint’ gives you the ability to run the container as an executable. 
+
+#ENTRYPOINT ["dagit", "-h", "0.0.0.0", "-p", "3000"]
+CMD ["dagit", "-h", "0.0.0.0", "-p", "3000"]
+
+# FROM dagster AS user_code
+
+# # Run dagster gRPC server on port 4000
+# EXPOSE 4000
+
+# # Using CMD rather than ENTRYPOINT allows the command to be overridden in
+# # run launchers or executors to run other commands using this image
+# CMD ["dagster", "api", "grpc", "-h", "0.0.0.0", "-p", "4000", "-f", "dagster_capstone/repository.py"]

@@ -7,6 +7,7 @@ orbs:
   aws-eks: circleci/aws-eks@1.1.0
   browser-tools: circleci/browser-tools@1.2.3
   kubernetes: circleci/kubernetes@0.12.1
+  docker: circleci/docker@2.0.1
 
 # These are custom functions that I use in other jobs
 commands:
@@ -20,16 +21,12 @@ commands:
           channel: alerts # Slack channel to display to
 
   # Function 2
-  destroy-docker-image:
-    description: Destroy Docker Image
+  rollback-container-build:
+    description: Rollback of Container Build to last working image
     parameters:
       # Add parameter here
       docker_image_tag:
         type: string
-        default: latest
-      docker_container_name:
-        type: string
-        default: NONE
     steps:
       - checkout
       - run:
@@ -37,32 +34,45 @@ commands:
           when: on_fail
           command: |
             # Your code here
-            ./docker/cleanup_docker_image.sh <<parameter.docker_image_tag>> <<parameter.docker_container_name>>
-
+            echo "Rolling back latest container to last working container"
+            # Revert to previous container as the latest.
+            # Delete the new container
+            exit 1
 
   # Function 3
-  destroy-environment:
-    description: Destroy Cloudformation Stacks Given A Workflow ID.
+  cleanup-eks:
+    description: Clean-up and destroy EKS cluster
     parameters:
-      # Add parameter here
-      workflow_id:
+      cluster-name:
         type: string
     steps:
+      - checkout
       - run:
-          name: Destroy Environments
+          name: Undeploy Applications
           when: on_fail
           command: |
-            # Use for roll back
-            # Delete any infrastructure created.
-            aws cloudformation delete-stack --stack-name "dagster-network-stack-<<parameters.workflow_id>>"
+            echo "Undeploying Applications"
+            cd kubernetes
+            kubectl delete -f dagster-service.yaml
+            kubectl delete -f dagster-deployment.yaml
+            exit 1
+      - run: 
+          name: Delete Cluster
+          when: on_fail
+          command: |
+            echo "Deleting Cluster"
+            eksctl delete cluster --name=<<parameters.cluster-name>>
+            exit 1
+
+
+
 
 jobs:
   lint:
     docker: 
       # This image has poetry, pyenv, pip, pipenv, and python 3.10 pre-installed
       # https://hub.docker.com/r/cimg/python
-      - image: cimg/python:3.9.7
-
+      - image: cimg/python:3.9.7  
     steps:
       - checkout
       # Use the chown command to grant CircleCI access to dependency locations
@@ -134,29 +144,17 @@ jobs:
 
   # Build container and make sure browser test passes
   # More about URL servers
-  build-and-deploy-image:
+  build-and-test-image:
     docker:
       - image: cimg/python:3.9.7
-      #- image: docker:20.10.11-git
     working_directory: ~/project/dagster
+    environment:
+      VERSION: v.1.<<pipeline.number>>
     steps:
       - checkout
       
-      - aws-cli/install # Works only for python images, need install python
-      
-      # Needed to deploy to ECR
-      - aws-cli/setup:
-          aws-region: AWS_DEFAULT_REGION
-          aws-access-key-id: AWS_ACCESS_KEY_ID
-          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-          profile-name: AWS_PROFILE_NAME 
-
-      - run: sudo chown -R circleci:circleci /usr/local/bin
-
-      # - restore_cache:
-      #     keys:
-      #       - v1-{{ .Branch }}-
-            
+      - aws-cli/install # Works only for python images, need install python 
+      - docker/install-docker-tools
       - setup_remote_docker
 
       - run:
@@ -174,180 +172,216 @@ jobs:
             docker load -i /caches/dagster-app.tar | true
 
       - run: 
-          name: Build Dagster Image
+          name: Build and Test Dagster Images
           command: |
+            
+            cd dagster
+
             # Your stack command code here
             echo "Building image..."
-            cd dagster
-            TAG="dagster-app:v1.${CIRCLE_WORKFLOW_ID}"
-            echo $TAG
-            docker build --cache-from=dagster-app --tag $TAG .
+
+            echo "VERSION=${VERSION}"
+            ls -l
+
+            echo "DOCKER COMPOSE UP"
+            docker-compose -f docker-compose-prod.yml up -d --force-recreate --build 
+
+            echo "See images that are built"
+            docker images
+
+            echo "See containers running"
+            docker ps
+
+            echo "Stop Containers"
+            docker-compose -f docker-compose-prod.yml down
+            docker ps
+            docker images 
+
+            echo "@@@Push to Repository"
+            docker login -u $DOCKER_USERNAME -p $DOCKER_ACCESS_CODE
+            #docker-compose -f docker-compose-prod.yml push
+            docker tag $DOCKER_USERNAME/dagit:$VERSION $DOCKER_USERNAME/dagit:latest
+            docker image push  $DOCKER_USERNAME/dagit:$VERSION
+            docker image push $DOCKER_USERNAME/dagit:latest
 
       # - run:
-      #     name: Save Docker image layer cache
-      #     command: |
-      #       sudo mkdir -p /caches
-      #       sudo docker save -o /caches/dagster-app.tar dagster-app:v1.${CIRCLE_WORKFLOW_ID}
-
-      # - save_cache:
-      #     key: v1-{{ .Branch }}-{{ epoch }}
-      #     paths:
-      #       - /caches/dagster-app.tar
-      #       - /usr/local/bin # Binaries of dependencies
-
-      # - run:
-      #     name: Test Dagster Container
+      #     name: Deploy to Docker Repository
       #     command: |
       #       cd dagster
-      #       docker run -d -p 3000:3000 --name dagster-cntr-${CIRCLE_WORKFLOW_ID} dagster-app:v1.${CIRCLE_WORKFLOW_ID}
-      #       docker ps
-      #       URL=0.0.0.0:3000
-      #       echo "URL = $URL"
-      #       docker ps -a
+      #       echo "Deploying to Docker"
+      #       docker login -u $DOCKER_USERNAME -p $DOCKER_ACCESS_CODE
+      #       docker-compose -f docker-compose-prod.yml push
+      #       docker tag $DOCKER_USERNAME/dagit:$VERSION $DOCKER_USERNAME/dagit:latest
+      #       docker image push $DOCKER_USERNAME/dagit:latest
 
-      #       # Check if can connect
-      #       curl $URL
-
-      #       if curl $URL
-      #       then
-      #           echo "SUCCESS(+): Connected to Dagster UI\n"
-      #       else
-      #           echo "FAILURE(-): Failed to connect to Dagster"
-      #           docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
-      #           exit 1
-      #       fi
-
-      #       # Check if it found relevant word.
-      #       if curl $URL | grep "Dagit"
-      #       then
-      #           echo "SUCCESS(++): found $2 in document: $URL\n"
-      #           docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
-      #           exit 0
-      #       else
-      #           echo "FAILURE(--): Failed to find $2 in document: $URL"
-      #           docker stop dagster-cntr-${CIRCLE_WORKFLOW_ID}
-      #           exit 1
-      #       fi
-
-      - deploy:
-          name: Deploy Image to ECR
+  # Jobs for Continuous Deployment          
+  initiate-cluster:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+    steps:
+      - kubernetes/install
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: <<parameters.cluster-name>>
+      - run:
+          name: Test cluster
           command: |
-            if [ "${CIRCLE_BRANCH}" == "main" ]; then
-              # I don't think I need the login since I setup the credentials already
-              #login="$(aws ecr get-login)"
-              #${login}
-              docker tag dagster-app:v1.${CIRCLE_WORKFLOW_ID} "${AWS_ECR_REPO_URI}/dagster-app:${CIRCLE_SHA1}"
-              docker push "${AWS_ECR_REPO_URI}/dagster-app:${CIRCLE_SHA1}"
-            fi
-          
-  
-  test_ui:
-    docker:
-      - image: cimg/python:3.9.7
+            echo "@@@ Nodes"
+            kubectl get nodes
+
+            echo -e "\n@@@ Services"
+            kubectl get services
+      # Destroy cluster on fail
+      - run:
+          name: Delete Cluster
+          command: |
+            # This take approximately 15 minutes to complete
+            # View progress on Cloudformation console
+            eksctl delete cluster --name=<<parameters.cluster-name>> --wait=true
+          when: on_fail
+
+  # Reference:
+  # https://circleci.com/docs/2.0/configuration-cookbook/#using-amazon-elastic-container-service-for-kubernetes-amazon-eks 
+  # https://circleci.com/developer/orbs/orb/circleci/kubernetes#usage-deployment
+  eks-deploy-resources:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+    working_directory: ~/project/kubernetes
     steps:
       - checkout
-      # To enable docker commands need the following step
-      - setup_remote_docker:
-          version: 20.10.7
-      - run: sudo chown -R circleci:circleci /usr/local/bin
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "pyproject.toml" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
-      - browser-tools/install-chrome
-      - browser-tools/install-chromedriver
+      - aws-cli/install
+      - kubernetes/install-kubectl
+      # TO DO: Create yaml files that describe the resource
+      # Create Stateful Deployment Resource
+      # Create Service Resource
       - run:
-          name: Check Chrome Install
+          name: Change Namespace
           command: |
-            google-chrome --version
-            chromedriver --version
-          
+            kubectl create ns production
+
+      # Reference: https://stackoverflow.com/questions/49032812/how-to-pull-image-from-dockerhub-in-kubernetes
       - run: 
-          name: Build Dagster Image
+          name: Link DockerHub repo to EKS
           command: |
-            # Your stack command code here
-            echo "Building image..."
+            kubectl create secret docker-registry regcred \
+            --docker-username=$DOCKER_USERNAME \
+            --docker-password=$DOCKER_ACCESS_CODE \
+            --docker-email=$DOCKER_EMAIL \
+            --namespace=production
+      
+      - run: 
+          name: Create Service Account in Cluster
+          command: |
+            kubectl apply -f dagster-service-account.yaml
 
       - run: 
-          name: Run Container
+          name: Check Service Account is created
           command: |
-            echo "Starting container"
+            kubectl get sa production-service-account --namespace=dev
 
-      - run:
-          name: Download Selenium Server
+      - run: 
+          name: Create EBS Volume for Kubernetes if it doesn't exist
           command: |
-            # sudo apt install wget # If not already installed uncomment
-            #url -O https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.0.jar
-            wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.0.jar
+            # Check That volume doesn't exist
+            #@@@ Fix!!!
+
+            # Create Volume
+            aws ec2 create-volume --availability-zone=$AWS_DEFAULT_REGION --size=10 --volume-type=gp2
+
+      - kubernetes/create-or-update-resource:
+          get-rollout-status: true
+          resource-file-path: kubernetes/dagster-deployment.yaml # path in git directory
+          resource-name: deployment/dagster-deployment.yaml # <Type of Resource>/<Name>
+          show-kubectl-command: true
+          watch-rollout-status: true
+
+      - run: 
+          name: Expose to the public through load balancer
+          command: |
+            kubectl expose deployment dagster-deployment \
+            --namespace=production \
+            --type=LoadBalancer \
+            --name=dagster-service
+
+            kubectl get service/dagster-service --namespace=production
+      #Using your browser, navigate to the DNS endpoint specified in the EXTERNAL-IP 
+      # Destroy cluster on fail
+      - cleanup-eks:
+          cluster-name: <<parameters.cluster-name>>
             
-      - run:
-          name: Start Selenium
-          command: |
-            java -jar selenium-server-4.1.0.jar -log test-reports/selenium.log
-          background: true
-      - run: 
-          name: Test Dagster Site
-          command: |
-            # Smoke Test for Dagster Site
-            echo "Starting smoke test..."
-  
-  # Upload container to repository
-  # upload_image:
-  #   docker:
-  #     - image: cimg/python:3.9.7
-  #   steps: 
-  #     - checkout
-  #     - run: sudo chown -R circleci:circleci /usr/local/bin
-  #     - restore_cache:
-  #         keys:
-  #         - v1-dependencies-{{ checksum "pyproject.toml" }}
-  #         # fallback to using the latest cache if no exact match is found
-  #         - v1-dependencies-
-  #     - run: 
-  #         name: Upload Image
-  #         command: |
-  #           # Your stack command code here
-  #           echo "Upload image..."
-  # End of Continuous Integration, Start of Continuous Delivery
-  
-  deploy_network_infrastructure:
-    docker:
-      - image: cimg/python:3.9.7
-    steps: 
-      - checkout
-      - aws-cli/install:
-          override-installed: true
-      - run: 
-          name: Deploy stack
-          command: |
-            # Your stack command code here
-            echo "Deploying stack..."
 
 # Workflows
 # ----------------------
 workflows:
-  default:
+  deployment:
     jobs:
       - lint
 
       - test_code:
           requires: [lint] # I need the dependencies to be created first
       
-      - build-and-deploy-image:
+      - build-and-test-image:
           requires: [test_code]
 
+      # - docker/publish:
+      #     image: $DOCKER_USERNAME/dagit
+      #     docker-username: DOCKER_USERNAME
+      #     docker-password: DOCKER_ACCESS_CODE
+      #     path: ~/project/dagster
+      #     docker-context: ~/project/dagster
+      #     tag: $VERSION
+      #     requires: [build-and-test-image]
+
+
+      # - hold:
+      #    type: approval
+      #    requires:
+      #       - docker/publish
+      #    filters:
+      #      branches: 
+      #       ignore: [main, develop]
+
       # END OF CONTINUOUS INTEGRATION, START CONTINUOUS DELIVERY
-      
-      # Want everything in my VPC, so deploying aws infrastructure
-      # - deploy_infrastucture:
-      #     requires: [upload_image]
-      #     filters:
-      #       branches:
-      #         only: [main]
 
       # Create EKS cluster (if not already created)
+      # It also creates the default VPC for the cluster
+      # Reference: https://eksctl.io/usage/vpc-networking/
+      - aws-eks/create-cluster:
+          cluster-name: dagster-eks-cluster
+          show-eksctl-command: true
+          tags: "Owner=UgochiJ, application=udacity-app, purpose=learning"
+          requires:
+            - build-and-test-image
+          filters:
+             branches:
+               only: [main, develop, uj_deploy]
 
-      # Manually approve cleanup?
-      #- hold:
-      #    type: approval
+      - eks-deploy-resources:
+          cluster-name: dagster-eks-cluster
+          requires:
+            - aws-eks/create-cluster
+          filters:
+             branches:
+               only: [main, develop, uj_deploy]
+      # Swap Blue/Green candidates in Docker (remember what the blue candidate was, just in case you need to rollback)
+      # Manually approve cleanup
+      - hold:
+         type: approval
+         requires:
+            - eks-deploy-resources
+
+      - aws-eks/delete-cluster:
+          cluster-name: dagster-eks-cluster
+          requires:
+            - aws-eks/create-cluster
+          filters:
+             branches:
+               only: [main, develop, uj_deploy]
+      

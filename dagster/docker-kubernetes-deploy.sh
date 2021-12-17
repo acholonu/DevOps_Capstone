@@ -1,0 +1,2 @@
+# Deploys application (i.e., microservice) to local kubernetes cluster that is installed with Docker Desktop.
+docker stack deploy --namespace my-dagster-app --compose-file docker-compose.yml dagster-stack

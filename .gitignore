@@ -71,3 +71,7 @@ archive/
 
 .coverage
 .env
+
+postgres-data/
+logs/
+.pytest_cache/

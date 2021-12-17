@@ -76,6 +76,9 @@ docker run -d -p 5000:5000 sample_flask_app
 docker run -d -p 5000:5000 --name my_flask_app_container sample_flask_app
 # docker run -d -p [Host port]:[Container port] --name <container name> <image name>
 
+docker run -d -rm -p 5000:5000 --name my_flask_app_container sample_flask_app
+# the -d --rm says, when the container stops, remove the container.
+
 # List Running Containers (and their information)
 # -----------------------------------------------
 # Remember containers are running Operating System processes, isolated in a box (i.e., container). 
@@ -177,3 +180,21 @@ docker run -d \
   --name devtest \
   -v myvol2:/app:ro \
   nginx:latest
+
+# Executing Postgres Database
+# ---------------------------
+# Docker exec means, run a command in an existing and running container.
+# -ti means (or -t and -i), i means interactive so you will see it STDIN (terminal).
+# t means allocate a pseudo-TTY
+docker exec -ti <container name> <command>
+
+# So in the case of the following command: 
+docker exec -ti mysqldb mysql -u root -p
+
+# It is saying execute the following command in the container name mysqldb.  
+# The command is `mysql`.  The option -u, say run these commands in the container
+# as the root user.  -p says, enter password. The -i says, do the interaction on 
+# the stdin (terminal).  I wondering what happens if the -ti wasn't there or if
+# the -t wasn't there.  I guess, I don't understand what andy -t is needed.  And
+# if not interactive mode, I guess you are just running the command in the container,
+# and you wouldn't see the output.

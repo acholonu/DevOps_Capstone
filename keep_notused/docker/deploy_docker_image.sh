@@ -7,6 +7,7 @@
 # -----
 # $1 = DOCKER_USERNAME
 # $2 = DOCKER_ACCESS_TOKEN
+# $3 = image name
 #
 # How to Run
 # ----------
@@ -16,7 +17,7 @@
 # Step 1:
 # Create dockerpath
 #dockerpath=<your docker ID/<repository>
-dockerpath=$1/learning
+dockerpath=$1/learning/$3
 
 # Step 2:  
 # Authenticate & tag
