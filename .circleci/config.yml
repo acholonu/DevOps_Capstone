@@ -4,7 +4,7 @@ version: 2.1
 orbs:
   slack: circleci/slack@4.5.0
   aws-cli: circleci/aws-cli@2.0.6
-  aws-eks: circleci/aws-eks@1.1.0
+  aws-eks: circleci/aws-eks@1.2.0
   browser-tools: circleci/browser-tools@1.2.3
   kubernetes: circleci/kubernetes@0.12.1
   docker: circleci/docker@2.0.1
@@ -144,7 +144,7 @@ jobs:
 
   # Build container and make sure browser test passes
   # More about URL servers
-  build-and-test-image:
+  build-and-deploy-image:
     docker:
       - image: cimg/python:3.9.7
     working_directory: ~/project/dagster
@@ -199,49 +199,41 @@ jobs:
 
             echo "@@@Push to Repository"
             docker login -u $DOCKER_USERNAME -p $DOCKER_ACCESS_CODE
-            #docker-compose -f docker-compose-prod.yml push
             docker tag $DOCKER_USERNAME/dagit:$VERSION $DOCKER_USERNAME/dagit:latest
             docker image push  $DOCKER_USERNAME/dagit:$VERSION
             docker image push $DOCKER_USERNAME/dagit:latest
 
-      # - run:
-      #     name: Deploy to Docker Repository
-      #     command: |
-      #       cd dagster
-      #       echo "Deploying to Docker"
-      #       docker login -u $DOCKER_USERNAME -p $DOCKER_ACCESS_CODE
-      #       docker-compose -f docker-compose-prod.yml push
-      #       docker tag $DOCKER_USERNAME/dagit:$VERSION $DOCKER_USERNAME/dagit:latest
-      #       docker image push $DOCKER_USERNAME/dagit:latest
-
   # Jobs for Continuous Deployment          
-  initiate-cluster:
-    executor: aws-eks/python3
-    parameters:
-      cluster-name:
-        description: |
-          Name of the EKS cluster
-        type: string
-    steps:
-      - kubernetes/install
-      - aws-eks/update-kubeconfig-with-authenticator:
-          cluster-name: <<parameters.cluster-name>>
-      - run:
-          name: Test cluster
-          command: |
-            echo "@@@ Nodes"
-            kubectl get nodes
+  # initiate-cluster:
+  #   executor: aws-eks/python3
+  #   parameters:
+  #     cluster-name:
+  #       description: |
+  #         Name of the EKS cluster
+  #       type: string
+  #   steps:
+  #     - kubernetes/install
+  #     - aws-eks/update-kubeconfig-with-authenticator:
+  #         cluster-name: <<parameters.cluster-name>>
+  #     - run:
+  #         name: Test cluster
+  #         command: |
+  #           echo "Cluster Description"
+  #           kubectl cluster-info
 
-            echo -e "\n@@@ Services"
-            kubectl get services
-      # Destroy cluster on fail
-      - run:
-          name: Delete Cluster
-          command: |
-            # This take approximately 15 minutes to complete
-            # View progress on Cloudformation console
-            eksctl delete cluster --name=<<parameters.cluster-name>> --wait=true
-          when: on_fail
+  #           echo "@@@ Nodes"
+  #           kubectl get nodes
+
+  #           echo -e "\n@@@ Services"
+  #           kubectl get services
+  #     # Destroy cluster on fail
+  #     - run:
+  #         name: Delete Cluster
+  #         command: |
+  #           # This take approximately 15 minutes to complete
+  #           # View progress on Cloudformation console
+  #           eksctl delete cluster --name=<<parameters.cluster-name>> --wait=true
+  #         when: on_fail
 
   # Reference:
   # https://circleci.com/docs/2.0/configuration-cookbook/#using-amazon-elastic-container-service-for-kubernetes-amazon-eks 
@@ -275,25 +267,15 @@ jobs:
             --docker-password=$DOCKER_ACCESS_CODE \
             --docker-email=$DOCKER_EMAIL \
             --namespace=production
-      
       - run: 
           name: Create Service Account in Cluster
           command: |
-            kubectl apply -f dagster-service-account.yaml
+            kubectl apply -f dagster-service-account.yaml --namespace=production
 
       - run: 
           name: Check Service Account is created
           command: |
-            kubectl get sa production-service-account --namespace=dev
-
-      - run: 
-          name: Create EBS Volume for Kubernetes if it doesn't exist
-          command: |
-            # Check That volume doesn't exist
-            #@@@ Fix!!!
-
-            # Create Volume
-            aws ec2 create-volume --availability-zone=$AWS_DEFAULT_REGION --size=10 --volume-type=gp2
+            kubectl get sa production-service-account --namespace=production
 
       - kubernetes/create-or-update-resource:
           get-rollout-status: true
@@ -301,6 +283,15 @@ jobs:
           resource-name: deployment/dagster-deployment.yaml # <Type of Resource>/<Name>
           show-kubectl-command: true
           watch-rollout-status: true
+          namespace: production
+      
+      - run: 
+          name: Check Pods and Service are created
+          command: |
+            cd kubernetes
+            kubectl get pods --namespace=production
+            kubectl get services --namespace=production
+            kubectl describe pods
 
       - run: 
           name: Expose to the public through load balancer
@@ -327,38 +318,30 @@ workflows:
       - test_code:
           requires: [lint] # I need the dependencies to be created first
       
-      - build-and-test-image:
+      - build-and-deploy-image:
           requires: [test_code]
 
-      # - docker/publish:
-      #     image: $DOCKER_USERNAME/dagit
-      #     docker-username: DOCKER_USERNAME
-      #     docker-password: DOCKER_ACCESS_CODE
-      #     path: ~/project/dagster
-      #     docker-context: ~/project/dagster
-      #     tag: $VERSION
-      #     requires: [build-and-test-image]
-
-
-      # - hold:
-      #    type: approval
-      #    requires:
-      #       - docker/publish
-      #    filters:
-      #      branches: 
-      #       ignore: [main, develop]
+      - hold:
+         type: approval
+         requires:
+            - build-and-deploy-image
+         filters:
+           branches: 
+            ignore: [main, develop]
 
       # END OF CONTINUOUS INTEGRATION, START CONTINUOUS DELIVERY
 
+      
       # Create EKS cluster (if not already created)
       # It also creates the default VPC for the cluster
       # Reference: https://eksctl.io/usage/vpc-networking/
       - aws-eks/create-cluster:
           cluster-name: dagster-eks-cluster
           show-eksctl-command: true
-          tags: "Owner=UgochiJ, application=udacity-app, purpose=learning"
+          aws-region: $AWS_DEFAULT_REGION
+          tags: "Owner=UgochiJ,application=udacity-app,purpose=learning"
           requires:
-            - build-and-test-image
+            - build-and-deploy-image
           filters:
              branches:
                only: [main, develop, uj_deploy]
@@ -370,6 +353,7 @@ workflows:
           filters:
              branches:
                only: [main, develop, uj_deploy]
+               
       # Swap Blue/Green candidates in Docker (remember what the blue candidate was, just in case you need to rollback)
       # Manually approve cleanup
       - hold:
