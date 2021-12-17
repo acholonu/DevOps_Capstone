@@ -144,7 +144,7 @@ jobs:
 
   # Build container and make sure browser test passes
   # More about URL servers
-  build-and-deploy-image:
+  build-and-test-image:
     docker:
       - image: cimg/python:3.9.7
     working_directory: ~/project/dagster
@@ -203,11 +203,11 @@ jobs:
             #docker image push 
             #docker image push $DOCKER_USERNAME/dagit:latest
       
-      - docker/publish:
-          image: $DOCKER_USERNAME/dagit
-          docker-username: $DOCKER_USERNAME
-          docker-password: $DOCKER_PASSWORD
-          tags: $VERSION,latest
+      # - docker/publish:
+      #     image: $DOCKER_USERNAME/dagit
+      #     docker-username: $DOCKER_USERNAME
+      #     docker-password: $DOCKER_PASSWORD
+      #     tags: $VERSION,latest
       
       # - docker/publish:
       #     image: $DOCKER_USERNAME/dagit:latest
@@ -341,8 +341,16 @@ workflows:
       - test_code:
           requires: [lint] # I need the dependencies to be created first
       
-      - build-and-deploy-image:
+      - build-and-test-image:
           requires: [test_code]
+
+      - docker/publish:
+          image: $DOCKER_USERNAME/dagit
+          docker-username: $DOCKER_USERNAME
+          docker-password: $DOCKER_PASSWORD
+          tags: $VERSION,latest
+          requires: [build-and-deploy-image]
+
 
       - hold:
          type: approval
