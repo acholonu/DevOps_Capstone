@@ -75,3 +75,8 @@ archive/
 postgres-data/
 logs/
 .pytest_cache/
+
+*.egg-info/
+dagster_capstone.egg-info/
+
+*.code-workspace
