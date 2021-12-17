@@ -349,7 +349,7 @@ workflows:
           docker-username: DOCKER_USERNAME
           docker-password: DOCKER_PASSWORD
           tag: $VERSION,latest
-          requires: [build-and-deploy-image]
+          requires: [build-and-test-image]
 
 
       - hold:
