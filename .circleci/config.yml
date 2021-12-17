@@ -202,21 +202,10 @@ jobs:
             docker tag $DOCKER_USERNAME/dagit:$VERSION $DOCKER_USERNAME/dagit:latest
             #docker image push 
             #docker image push $DOCKER_USERNAME/dagit:latest
-      
-      # - docker/publish:
-      #     image: $DOCKER_USERNAME/dagit
-      #     docker-username: $DOCKER_USERNAME
-      #     docker-password: $DOCKER_PASSWORD
-      #     tags: $VERSION,latest
-      
-      # - docker/publish:
-      #     image: $DOCKER_USERNAME/dagit:latest
-      #     docker-username: $DOCKER_USERNAME
-      #     docker-password: $DOCKER_PASSWORD
 
-
-           
-            
+      - docker/push:
+          image: $DOCKER_USERNAME/dagit
+          tag: $VERSION,latest
 
       # - run:
       #     name: Deploy to Docker Repository
@@ -344,14 +333,14 @@ workflows:
       - build-and-test-image:
           requires: [test_code]
 
-      - docker/publish:
-          image: $DOCKER_USERNAME/dagit
-          docker-username: DOCKER_USERNAME
-          docker-password: DOCKER_ACCESS_CODE
-          path: ~/project/dagster
-          docker-context: ~/project/dagster
-          tag: $VERSION
-          requires: [build-and-test-image]
+      # - docker/publish:
+      #     image: $DOCKER_USERNAME/dagit
+      #     docker-username: DOCKER_USERNAME
+      #     docker-password: DOCKER_ACCESS_CODE
+      #     path: ~/project/dagster
+      #     docker-context: ~/project/dagster
+      #     tag: $VERSION
+      #     requires: [build-and-test-image]
 
 
       - hold:
