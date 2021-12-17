@@ -347,7 +347,7 @@ workflows:
       - docker/publish:
           image: $DOCKER_USERNAME/dagit
           docker-username: DOCKER_USERNAME
-          docker-password: DOCKER_PASSWORD
+          docker-password: DOCKER_ACCESS_CODE
           tag: $VERSION,latest
           requires: [build-and-test-image]
 
@@ -355,7 +355,7 @@ workflows:
       - hold:
          type: approval
          requires:
-            - build-and-test-image
+            - docker/publish
          filters:
            branches: 
             ignore: [main, develop]
