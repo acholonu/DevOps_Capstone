@@ -236,11 +236,7 @@ jobs:
       - run:
           name: View Kubernetes Resources
           command: |
-            echo "Cluster Description"
-            kubectl cluster-info
-
             echo "@@@ Nodes"
-            kubectl get nodes
             kubectl get nodes -o wide
 
             #echo -e "\n@@@ Services"
@@ -352,7 +348,7 @@ workflows:
 
       # END OF CONTINUOUS INTEGRATION, START CONTINUOUS DELIVERY
       - create-cluster:
-          cluster-name: dagster-eks-cluster          
+          cluster-name: dagster-eks          
           requires:
             - build-and-deploy-image 
           filters:
@@ -375,7 +371,7 @@ workflows:
       #          only: [main, develop, uj_deploy]
 
       - eks-deploy-resources:
-          cluster-name: dagster-eks-cluster
+          cluster-name: dagster-eks
           requires:
             #- aws-eks/create-cluster
             - create-cluster
@@ -391,7 +387,7 @@ workflows:
             - eks-deploy-resources
 
       - aws-eks/delete-cluster:
-          cluster-name: dagster-eks-cluster
+          cluster-name: dagster-eks
           requires:
             - eks-deploy-resources
             - hold 
