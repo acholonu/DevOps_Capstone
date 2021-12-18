@@ -4,7 +4,7 @@ version: 2.1
 orbs:
   slack: circleci/slack@4.5.0
   aws-cli: circleci/aws-cli@2.0.6
-  aws-eks: circleci/aws-eks@1.2.0
+  aws-eks: circleci/aws-eks@2.0.0
   browser-tools: circleci/browser-tools@1.2.3
   kubernetes: circleci/kubernetes@0.12.1
   docker: circleci/docker@2.0.1
@@ -214,14 +214,13 @@ jobs:
     steps:
       - checkout
       - kubernetes/install
-      - aws-eks/install-aws-iam-authenicator
       - run: 
           name: Install eksctl
           command: |
             curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
             sudo mv /tmp/eksctl /usr/local/bin
             eksctl version
-
+      - aws-eks/install-aws-iam-authenicator
       - run: 
           name: Create Cluster
           command: |
@@ -233,10 +232,12 @@ jobs:
             --name <<parameters.cluster-name>> \
             --region $AWS_DEFAULT_REGION \
             --fargate #optional
+
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: <<parameters.cluster-name>>
           install-aws-cli: false
           aws-region: $AWS_DEFAULT_REGION
+
       - run:
           name: View Kubernetes Resources
           command: |
