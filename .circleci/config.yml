@@ -58,7 +58,7 @@ commands:
             kubectl delete -f dagster-service-account.yaml --namespace=production
             kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --namespace=production
             exit 1
-            
+
       - run: 
           name: Delete Cluster
           when: on_fail
@@ -66,9 +66,6 @@ commands:
             echo "Deleting Cluster"
             eksctl delete cluster --name=<<parameters.cluster-name>> --namespace production
             exit 1
-
-
-
 
 jobs:
   lint:
@@ -353,20 +350,11 @@ workflows:
       - build-and-deploy-image:
           requires: [test_code]
 
-      - hold:
-         type: approval
-         requires:
-            - build-and-deploy-image
-         filters:
-           branches: 
-            ignore: [main, develop]
-
       # END OF CONTINUOUS INTEGRATION, START CONTINUOUS DELIVERY
       - create-cluster:
           cluster-name: dagster-eks-cluster          
           requires:
-            - build-and-deploy-image
-            - hold  
+            - build-and-deploy-image 
           filters:
              branches:
                only: [main, develop, uj_deploy]
