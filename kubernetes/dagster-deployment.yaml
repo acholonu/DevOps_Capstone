@@ -1,4 +1,7 @@
+#A deployment is responsible for keeping a set of pods running
 # Reference: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+# Reference: https://matthewpalmer.net/kubernetes-app-developer/articles/service-kubernetes-example-tutorial.html
+
 apiVersion: v1
 kind: Deployment
 metadata:

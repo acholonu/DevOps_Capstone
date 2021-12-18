@@ -1,5 +1,6 @@
 # Reference
 # ---------
+# Create a Service. A Service allows you to access all replicas through a single IP address or name. 
 #
 # Multi-Port Services: https://kubernetes.io/docs/concepts/services-networking/service/#multi-port-services
 apiVersion: v1
@@ -7,11 +8,9 @@ kind: Service
 metadata:
   name: dagster
 spec:
-  ports:
-    - port: 3000
-      name: dagit
-    # - port: 5432
-    #   name: postgres
   selector:
     app: dagster
-  clusterIP: None
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000

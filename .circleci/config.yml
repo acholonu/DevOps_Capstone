@@ -351,7 +351,7 @@ workflows:
           cluster-name: dagster-eks-cluster          
           requires:
             - build-and-deploy-image
-            - hold-1  
+            - hold  
           filters:
              branches:
                only: [main, develop, uj_deploy]
@@ -382,17 +382,17 @@ workflows:
                
       # Swap Blue/Green candidates in Docker (remember what the blue candidate was, just in case you need to rollback)
       # Manually approve cleanup
-      - hold:
-         type: approval
-         requires:
-            - eks-deploy-resources
+      # - hold:
+      #    type: approval
+      #    requires:
+      #       - eks-deploy-resources
 
-      - aws-eks/delete-cluster:
-          cluster-name: dagster-eks-cluster
-          requires:
-            - eks-deploy-resources
-            - hold-2 
-          filters:
-             branches:
-               only: [main, develop, uj_deploy]
+      # - aws-eks/delete-cluster:
+      #     cluster-name: dagster-eks-cluster
+      #     requires:
+      #       - eks-deploy-resources
+      #       - hold 
+      #     filters:
+      #        branches:
+      #          only: [main, develop, uj_deploy]
       
