@@ -53,10 +53,12 @@ commands:
           command: |
             echo "Undeploying Applications"
             cd kubernetes
-            kubectl delete -f dagster-service.yaml --namespace production
-            kubectl delete -f dagster-deployment.yaml --namespace production
-            kubectl delete -f dagster-service-account.yaml --namespace production
+            kubectl delete -f dagster-service.yaml --namespace=production
+            kubectl delete -f dagster-deployment.yaml --namespace=production
+            kubectl delete -f dagster-service-account.yaml --namespace=production
+            kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --namespace=production
             exit 1
+            
       - run: 
           name: Delete Cluster
           when: on_fail
@@ -216,6 +218,13 @@ jobs:
       - checkout
       - kubernetes/install
       - run: 
+          name: Install eksctl
+          command: |
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            sudo mv /tmp/eksctl /usr/local/bin
+            eksctl version
+
+      - run: 
           name: Create Cluster
           command: |
             #cd kubernetes
@@ -225,8 +234,8 @@ jobs:
             eksctl create cluster \
             --name <<parameters.cluster-name>> \
             --region $AWS_DEFAULT_REGION \
-            --fargate
-           
+            --fargate #optional
+
       - run:
           name: View Kubernetes Resources
           command: |
@@ -276,6 +285,12 @@ jobs:
             kubectl create ns production
 
       # Reference: https://stackoverflow.com/questions/49032812/how-to-pull-image-from-dockerhub-in-kubernetes
+      - run: 
+          name: Deploy Metric Server
+          command: |
+            kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --namespace=production
+            kubectl get deployment metrics-server -n kube-system
+
       - run: 
           name: Link DockerHub repo to EKS
           command: |
@@ -382,17 +397,17 @@ workflows:
                
       # Swap Blue/Green candidates in Docker (remember what the blue candidate was, just in case you need to rollback)
       # Manually approve cleanup
-      # - hold:
-      #    type: approval
-      #    requires:
-      #       - eks-deploy-resources
+      - hold:
+         type: approval
+         requires:
+            - eks-deploy-resources
 
-      # - aws-eks/delete-cluster:
-      #     cluster-name: dagster-eks-cluster
-      #     requires:
-      #       - eks-deploy-resources
-      #       - hold 
-      #     filters:
-      #        branches:
-      #          only: [main, develop, uj_deploy]
+      - aws-eks/delete-cluster:
+          cluster-name: dagster-eks-cluster
+          requires:
+            - eks-deploy-resources
+            - hold 
+          filters:
+             branches:
+               only: [main, develop, uj_deploy]
       
