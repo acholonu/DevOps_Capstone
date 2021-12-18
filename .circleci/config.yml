@@ -53,15 +53,16 @@ commands:
           command: |
             echo "Undeploying Applications"
             cd kubernetes
-            kubectl delete -f dagster-service.yaml
-            kubectl delete -f dagster-deployment.yaml
+            kubectl delete -f dagster-service.yaml --namespace production
+            kubectl delete -f dagster-deployment.yaml --namespace production
+            kubectl delete -f dagster-service-account.yaml --namespace production
             exit 1
       - run: 
           name: Delete Cluster
           when: on_fail
           command: |
             echo "Deleting Cluster"
-            eksctl delete cluster --name=<<parameters.cluster-name>>
+            eksctl delete cluster --name=<<parameters.cluster-name>> --namespace production
             exit 1
 
 
@@ -203,37 +204,53 @@ jobs:
             docker image push  $DOCKER_USERNAME/dagit:$VERSION
             docker image push $DOCKER_USERNAME/dagit:latest
 
-  # Jobs for Continuous Deployment          
-  # initiate-cluster:
-  #   executor: aws-eks/python3
-  #   parameters:
-  #     cluster-name:
-  #       description: |
-  #         Name of the EKS cluster
-  #       type: string
-  #   steps:
-  #     - kubernetes/install
-  #     - aws-eks/update-kubeconfig-with-authenticator:
-  #         cluster-name: <<parameters.cluster-name>>
-  #     - run:
-  #         name: Test cluster
-  #         command: |
-  #           echo "Cluster Description"
-  #           kubectl cluster-info
+  #Jobs for Continuous Deployment          
+  create-cluster:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+    steps:
+      - checkout
+      - kubernetes/install
+      - run: 
+          name: Create Cluster
+          command: |
+            #cd kubernetes
+            #eksctl create cluster -f dagster-cluster.yaml
 
-  #           echo "@@@ Nodes"
-  #           kubectl get nodes
+            # Reference: https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html
+            eksctl create cluster \
+            --name <<parameters.cluster-name>> \
+            --region $AWS_DEFAULT_REGION \
+            --fargate
+           
+      - run:
+          name: View Kubernetes Resources
+          command: |
+            echo "Cluster Description"
+            kubectl cluster-info
 
-  #           echo -e "\n@@@ Services"
-  #           kubectl get services
-  #     # Destroy cluster on fail
-  #     - run:
-  #         name: Delete Cluster
-  #         command: |
-  #           # This take approximately 15 minutes to complete
-  #           # View progress on Cloudformation console
-  #           eksctl delete cluster --name=<<parameters.cluster-name>> --wait=true
-  #         when: on_fail
+            echo "@@@ Nodes"
+            kubectl get nodes
+            kubectl get nodes -o wide
+
+            #echo -e "\n@@@ Services"
+            #kubectl get services
+
+            echo "@@@ Pods"
+            kubectl get pods --all-namespaces -o wide
+
+      # Destroy cluster on fail
+      - run:
+          name: Delete Cluster
+          command: |
+            # This take approximately 15 minutes to complete
+            # View progress on Cloudformation console
+            eksctl delete cluster --name=<<parameters.cluster-name>> --wait=true
+          when: on_fail
 
   # Reference:
   # https://circleci.com/docs/2.0/configuration-cookbook/#using-amazon-elastic-container-service-for-kubernetes-amazon-eks 
@@ -330,26 +347,35 @@ workflows:
             ignore: [main, develop]
 
       # END OF CONTINUOUS INTEGRATION, START CONTINUOUS DELIVERY
-
+      - create-cluster:
+          cluster-name: dagster-eks-cluster          
+          requires:
+            - build-and-deploy-image
+            - hold-1  
+          filters:
+             branches:
+               only: [main, develop, uj_deploy]
       
       # Create EKS cluster (if not already created)
       # It also creates the default VPC for the cluster
       # Reference: https://eksctl.io/usage/vpc-networking/
-      - aws-eks/create-cluster:
-          cluster-name: dagster-eks-cluster
-          show-eksctl-command: true
-          aws-region: $AWS_DEFAULT_REGION
-          tags: "Owner=UgochiJ,application=udacity-app,purpose=learning"
-          requires:
-            - build-and-deploy-image
-          filters:
-             branches:
-               only: [main, develop, uj_deploy]
+      # - aws-eks/create-cluster:
+      #     cluster-name: dagster-eks-cluster
+      #     show-eksctl-command: true
+      #     aws-region: $AWS_DEFAULT_REGION
+      #     tags: "Owner=UgochiJ,application=udacity-app,purpose=learning"
+      #     requires:
+      #       - build-and-deploy-image
+      #       - hold-1  
+      #     filters:
+      #        branches:
+      #          only: [main, develop, uj_deploy]
 
       - eks-deploy-resources:
           cluster-name: dagster-eks-cluster
           requires:
-            - aws-eks/create-cluster
+            #- aws-eks/create-cluster
+            - create-cluster
           filters:
              branches:
                only: [main, develop, uj_deploy]
@@ -364,7 +390,8 @@ workflows:
       - aws-eks/delete-cluster:
           cluster-name: dagster-eks-cluster
           requires:
-            - aws-eks/create-cluster
+            - eks-deploy-resources
+            - hold-2 
           filters:
              branches:
                only: [main, develop, uj_deploy]
