@@ -220,11 +220,11 @@ jobs:
             curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
             sudo mv /tmp/eksctl /usr/local/bin
             eksctl version
-      - aws-eks/install-aws-iam-authenticator
-      # - run: 
-      #     name: Install AWS IAM Authenticator
-      #     command: |
-      #       curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.21.2/2021-07-05/bin/linux/amd64/aws-iam-authenticator
+      #- aws-eks/install-aws-iam-authenticator
+      - run: 
+          name: Install AWS IAM Authenticator
+          command: |
+            curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.21.2/2021-07-05/bin/linux/amd64/aws-iam-authenticator
       
       - run: 
           name: Create Cluster
