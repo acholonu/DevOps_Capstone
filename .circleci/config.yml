@@ -204,7 +204,7 @@ jobs:
             docker image push $DOCKER_USERNAME/dagit:latest
 
   #Jobs for Continuous Deployment          
-  create-dagster-cluster:
+  create-cluster:
     executor: aws-eks/python3
     parameters:
       cluster-name:
@@ -357,33 +357,33 @@ workflows:
           requires: [test_code]
 
       # END OF CONTINUOUS INTEGRATION, START CONTINUOUS DELIVERY
-      - create-dagster-cluster:
-          cluster-name: dagster-eks          
-          requires:
-            - build-and-deploy-image 
-          filters:
-             branches:
-               only: [main, develop, uj_deploy]
-      
-      # Create EKS cluster (if not already created)
-      # It also creates the default VPC for the cluster
-      # Reference: https://eksctl.io/usage/vpc-networking/
-      # - aws-eks/create-cluster:
-      #     cluster-name: dagster-eks
-      #     show-eksctl-command: true
-      #     aws-region: $AWS_DEFAULT_REGION
-      #     tags: "Owner=UgochiJ,application=udacity-app,purpose=learning"
+      # - create-cluster:
+      #     cluster-name: dagster-eks          
       #     requires:
       #       - build-and-deploy-image 
       #     filters:
       #        branches:
       #          only: [main, develop, uj_deploy]
+      
+      # Create EKS cluster (if not already created)
+      # It also creates the default VPC for the cluster
+      # Reference: https://eksctl.io/usage/vpc-networking/
+      - aws-eks/create-cluster:
+          cluster-name: dagster-eks
+          show-eksctl-command: true
+          aws-region: $AWS_DEFAULT_REGION
+          tags: "Owner=UgochiJ,application=udacity-app,purpose=learning"
+          requires:
+            - build-and-deploy-image 
+          filters:
+             branches:
+               only: [main, develop, uj_deploy]
 
       - eks-deploy-resources:
           cluster-name: dagster-eks
           requires:
-            #- aws-eks/create-cluster
-            - create-cluster
+            - aws-eks/create-cluster
+            #- create-cluster
           filters:
              branches:
                only: [main, develop, uj_deploy]
