@@ -251,11 +251,6 @@ jobs:
             --region $AWS_DEFAULT_REGION \
             --fargate #optional
 
-      # - aws-eks/update-kubeconfig-with-authenticator:
-      #     cluster-name: <<parameters.cluster-name>>
-      #     install-aws-cli: false
-      #     aws-region: $AWS_DEFAULT_REGION
-
       # Reference: https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html
       - run: 
           name: Create Kubeconfig for Cluster
@@ -311,7 +306,12 @@ jobs:
       - checkout
       - aws-cli/install
       - kubernetes/install-kubectl
-
+      - run: 
+          name: Install eksctl
+          command: |
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            sudo mv /tmp/eksctl /usr/local/bin
+            eksctl version
       # Configure your computer to communicate with your cluster
       - run: 
           name: Update Kubeconfig for Cluster
@@ -328,7 +328,7 @@ jobs:
       - run: 
           name: Deploy Metric Server
           command: |
-            kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --namespace=production
+            kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --namespace=kube-system
             kubectl get deployment metrics-server -n kube-system
 
       - run: 
@@ -339,9 +339,11 @@ jobs:
             --docker-password=$DOCKER_ACCESS_CODE \
             --docker-email=$DOCKER_EMAIL \
             --namespace=production
+
       - run: 
           name: Create Service Account in Cluster
           command: |
+            #cd kubernetes
             kubectl apply -f dagster-service-account.yaml --namespace=production
 
       - run: 
@@ -352,6 +354,7 @@ jobs:
       - run: 
           name: Deploy Dagaster Service
           command: |
+            #cd kubernetes
             kubectl apply -f dagster-deployment.yaml --namespace=production
             kubectl apply -f dagster-service.yaml --namespace=production
 
@@ -366,7 +369,6 @@ jobs:
       - run: 
           name: Check Pods and Service are created
           command: |
-            cd kubernetes
             kubectl get pods --namespace=production
             kubectl get services --namespace=production
             kubectl describe pods
@@ -395,6 +397,12 @@ jobs:
       - checkout
       - aws-cli/install
       - kubernetes/install-kubectl
+      - run: 
+          name: Install eksctl
+          command: |
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            sudo mv /tmp/eksctl /usr/local/bin
+            eksctl version
 
       # Configure your computer to communicate with your cluster
       - run: 
@@ -402,7 +410,7 @@ jobs:
           command: |
             aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name <<parameters.cluster-name>>
             kubectl get svc
-            
+
       - run:
           name: Undeploy Applications
           command: |
@@ -417,7 +425,7 @@ jobs:
           name: Delete Cluster
           command: |
             echo "Deleting Cluster"
-            eksctl delete cluster --name=<<parameters.cluster-name>> --namespace production            
+            eksctl delete cluster --name=<<parameters.cluster-name>>           
 
 # Workflows
 # ----------------------
