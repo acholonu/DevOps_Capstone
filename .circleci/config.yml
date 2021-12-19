@@ -45,6 +45,9 @@ commands:
     parameters:
       cluster-name:
         type: string
+      # delete-when:
+      #   type: string
+      #   default: on_fail # on_success
     steps:
       - checkout
       - run:
@@ -66,6 +69,30 @@ commands:
             echo "Deleting Cluster"
             eksctl delete cluster --name=<<parameters.cluster-name>> --namespace production
             exit 1
+
+  # Function 3
+  delete-eks-cluster:
+    description: Clean-up and destroy EKS cluster
+    parameters:
+      cluster-name:
+        type: string
+    steps:
+      - checkout
+      - run:
+          name: Undeploy Applications
+          command: |
+            echo "Undeploying Applications"
+            cd kubernetes
+            kubectl delete -f dagster-service.yaml --namespace=production
+            kubectl delete -f dagster-deployment.yaml --namespace=production
+            kubectl delete -f dagster-service-account.yaml --namespace=production
+            kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --namespace=production
+
+      - run: 
+          name: Delete Cluster
+          command: |
+            echo "Deleting Cluster"
+            eksctl delete cluster --name=<<parameters.cluster-name>> --namespace production
 
 jobs:
   lint:
@@ -435,7 +462,7 @@ workflows:
          requires:
             - eks-deploy-resources
 
-      - aws-eks/delete-cluster:
+      - delete-eks-cluster:
           cluster-name: dagster-eks
           requires:
             - eks-deploy-resources
@@ -443,4 +470,13 @@ workflows:
           filters:
              branches:
                only: [main, develop, uj_deploy]
+
+      # - aws-eks/delete-cluster:
+      #     cluster-name: dagster-eks
+      #     requires:
+      #       - eks-deploy-resources
+      #       - hold 
+      #     filters:
+      #        branches:
+      #          only: [main, develop, uj_deploy]
       
