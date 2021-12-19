@@ -70,30 +70,6 @@ commands:
             eksctl delete cluster --name=<<parameters.cluster-name>> --namespace production
             exit 1
 
-  # Function 3
-  delete-eks-cluster:
-    description: Clean-up and destroy EKS cluster
-    parameters:
-      cluster-name:
-        type: string
-    steps:
-      - checkout
-      - run:
-          name: Undeploy Applications
-          command: |
-            echo "Undeploying Applications"
-            cd kubernetes
-            kubectl delete -f dagster-service.yaml --namespace=production
-            kubectl delete -f dagster-deployment.yaml --namespace=production
-            kubectl delete -f dagster-service-account.yaml --namespace=production
-            kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --namespace=production
-
-      - run: 
-          name: Delete Cluster
-          command: |
-            echo "Deleting Cluster"
-            eksctl delete cluster --name=<<parameters.cluster-name>> --namespace production
-
 jobs:
   lint:
     docker: 
@@ -408,7 +384,40 @@ jobs:
       # Destroy cluster on fail
       - cleanup-eks:
           cluster-name: <<parameters.cluster-name>>
+
+  delete-eks-cluster:
+    docker:
+      - image: cimg/python:3.9.7
+    parameters:
+      cluster-name:
+        type: string
+    steps:
+      - checkout
+      - aws-cli/install
+      - kubernetes/install-kubectl
+
+      # Configure your computer to communicate with your cluster
+      - run: 
+          name: Update Kubeconfig for Cluster
+          command: |
+            aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name <<parameters.cluster-name>>
+            kubectl get svc
             
+      - run:
+          name: Undeploy Applications
+          command: |
+            echo "Undeploying Applications"
+            cd kubernetes
+            kubectl delete -f dagster-service.yaml --namespace=production
+            kubectl delete -f dagster-deployment.yaml --namespace=production
+            kubectl delete -f dagster-service-account.yaml --namespace=production
+            kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --namespace=production
+
+      - run: 
+          name: Delete Cluster
+          command: |
+            echo "Deleting Cluster"
+            eksctl delete cluster --name=<<parameters.cluster-name>> --namespace production            
 
 # Workflows
 # ----------------------
