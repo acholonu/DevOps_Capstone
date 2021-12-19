@@ -205,7 +205,9 @@ jobs:
 
   #Jobs for Continuous Deployment          
   create-cluster:
-    executor: aws-eks/python3
+    #executor: aws-eks/python3
+    docker:
+      - image: cimg/python:3.9.7
     parameters:
       cluster-name:
         description: |
@@ -213,6 +215,8 @@ jobs:
         type: string
     steps:
       - checkout
+      - aws-cli/install # Works only for python images, need install python 
+      - docker/install-docker-tools
       - kubernetes/install
       - run: 
           name: Install eksctl
@@ -221,10 +225,16 @@ jobs:
             sudo mv /tmp/eksctl /usr/local/bin
             eksctl version
       #- aws-eks/install-aws-iam-authenticator
+
+      # Reference: https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html
       - run: 
           name: Install AWS IAM Authenticator
           command: |
             curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.21.2/2021-07-05/bin/linux/amd64/aws-iam-authenticator
+            chmod +x ./aws-iam-authenticator
+            mkdir -p $HOME/bin && cp ./aws-iam-authenticator $HOME/bin/aws-iam-authenticator && export PATH=$PATH:$HOME/bin
+            echo 'export PATH=$PATH:$HOME/bin' >> ~/.bashrc
+            aws-iam-authenticator help
       
       - run: 
           name: Create Cluster
@@ -238,10 +248,26 @@ jobs:
             --region $AWS_DEFAULT_REGION \
             --fargate #optional
 
-      - aws-eks/update-kubeconfig-with-authenticator:
-          cluster-name: <<parameters.cluster-name>>
-          install-aws-cli: false
-          aws-region: $AWS_DEFAULT_REGION
+      # - aws-eks/update-kubeconfig-with-authenticator:
+      #     cluster-name: <<parameters.cluster-name>>
+      #     install-aws-cli: false
+      #     aws-region: $AWS_DEFAULT_REGION
+
+      # Reference: https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html
+      - run: 
+          name: Create Kubeconfig for Cluster
+          command: |
+            aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name <<parameters.cluster-name>>
+            kubectl get svc
+
+            echo "@@@ Nodes"
+            kubectl get nodes -o wide
+
+            #echo -e "\n@@@ Services"
+            #kubectl get services
+
+            echo "@@@ Pods"
+            kubectl get pods --all-namespaces -o wide
 
       - run:
           name: View Kubernetes Resources
@@ -357,33 +383,33 @@ workflows:
           requires: [test_code]
 
       # END OF CONTINUOUS INTEGRATION, START CONTINUOUS DELIVERY
-      # - create-cluster:
-      #     cluster-name: dagster-eks          
-      #     requires:
-      #       - build-and-deploy-image 
-      #     filters:
-      #        branches:
-      #          only: [main, develop, uj_deploy]
-      
-      # Create EKS cluster (if not already created)
-      # It also creates the default VPC for the cluster
-      # Reference: https://eksctl.io/usage/vpc-networking/
-      - aws-eks/create-cluster:
-          cluster-name: dagster-eks
-          show-eksctl-command: true
-          aws-region: $AWS_DEFAULT_REGION
-          tags: "Owner=UgochiJ,application=udacity-app,purpose=learning"
+      - create-cluster:
+          cluster-name: dagster-eks          
           requires:
             - build-and-deploy-image 
           filters:
              branches:
                only: [main, develop, uj_deploy]
+      
+      # Create EKS cluster (if not already created)
+      # It also creates the default VPC for the cluster
+      # Reference: https://eksctl.io/usage/vpc-networking/
+      # - aws-eks/create-cluster:
+      #     cluster-name: dagster-eks
+      #     show-eksctl-command: true
+      #     aws-region: $AWS_DEFAULT_REGION
+      #     tags: "Owner=UgochiJ,application=udacity-app,purpose=learning"
+      #     requires:
+      #       - build-and-deploy-image 
+      #     filters:
+      #        branches:
+      #          only: [main, develop, uj_deploy]
 
       - eks-deploy-resources:
           cluster-name: dagster-eks
           requires:
-            - aws-eks/create-cluster
-            #- create-cluster
+            #- aws-eks/create-cluster
+            - create-cluster
           filters:
              branches:
                only: [main, develop, uj_deploy]
