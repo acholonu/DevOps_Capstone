@@ -293,8 +293,11 @@ jobs:
   # Reference:
   # https://circleci.com/docs/2.0/configuration-cookbook/#using-amazon-elastic-container-service-for-kubernetes-amazon-eks 
   # https://circleci.com/developer/orbs/orb/circleci/kubernetes#usage-deployment
+  # https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#cluster-info
   eks-deploy-resources:
-    executor: aws-eks/python3
+    #executor: aws-eks/python3
+    docker:
+      - image: cimg/python:3.9.7
     parameters:
       cluster-name:
         description: |
@@ -305,9 +308,14 @@ jobs:
       - checkout
       - aws-cli/install
       - kubernetes/install-kubectl
-      # TO DO: Create yaml files that describe the resource
-      # Create Stateful Deployment Resource
-      # Create Service Resource
+
+      # Configure your computer to communicate with your cluster
+      - run: 
+          name: Update Kubeconfig for Cluster
+          command: |
+            aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name <<parameters.cluster-name>>
+            kubectl get svc
+
       - run:
           name: Change Namespace
           command: |
@@ -338,13 +346,19 @@ jobs:
           command: |
             kubectl get sa production-service-account --namespace=production
 
-      - kubernetes/create-or-update-resource:
-          get-rollout-status: true
-          resource-file-path: kubernetes/dagster-deployment.yaml # path in git directory
-          resource-name: deployment/dagster-deployment.yaml # <Type of Resource>/<Name>
-          show-kubectl-command: true
-          watch-rollout-status: true
-          namespace: production
+      - run: 
+          name: Deploy Dagaster Service
+          command: |
+            kubectl apply -f dagster-deployment.yaml --namespace=production
+            kubectl apply -f dagster-service.yaml --namespace=production
+
+      # - kubernetes/create-or-update-resource:
+      #     get-rollout-status: true
+      #     resource-file-path: kubernetes/dagster-deployment.yaml # path in git directory
+      #     resource-name: deployment/dagster-deployment.yaml # <Type of Resource>/<Name>
+      #     show-kubectl-command: true
+      #     watch-rollout-status: true
+      #     namespace: production
       
       - run: 
           name: Check Pods and Service are created
