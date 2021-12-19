@@ -6,7 +6,7 @@ orbs:
   aws-cli: circleci/aws-cli@2.0.6
   aws-eks: circleci/aws-eks@2.0.0
   browser-tools: circleci/browser-tools@1.2.3
-  kubernetes: circleci/kubernetes@0.12.1
+  kubernetes: circleci/kubernetes@1.0.2
   docker: circleci/docker@2.0.1
 
 # These are custom functions that I use in other jobs
@@ -204,7 +204,7 @@ jobs:
             docker image push $DOCKER_USERNAME/dagit:latest
 
   #Jobs for Continuous Deployment          
-  create-cluster:
+  create-dagster-cluster:
     executor: aws-eks/python3
     parameters:
       cluster-name:
@@ -357,7 +357,7 @@ workflows:
           requires: [test_code]
 
       # END OF CONTINUOUS INTEGRATION, START CONTINUOUS DELIVERY
-      - create-cluster:
+      - create-dagster-cluster:
           cluster-name: dagster-eks          
           requires:
             - build-and-deploy-image 
@@ -369,13 +369,12 @@ workflows:
       # It also creates the default VPC for the cluster
       # Reference: https://eksctl.io/usage/vpc-networking/
       # - aws-eks/create-cluster:
-      #     cluster-name: dagster-eks-cluster
+      #     cluster-name: dagster-eks
       #     show-eksctl-command: true
       #     aws-region: $AWS_DEFAULT_REGION
       #     tags: "Owner=UgochiJ,application=udacity-app,purpose=learning"
       #     requires:
-      #       - build-and-deploy-image
-      #       - hold-1  
+      #       - build-and-deploy-image 
       #     filters:
       #        branches:
       #          only: [main, develop, uj_deploy]
