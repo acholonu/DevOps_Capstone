@@ -61,7 +61,7 @@ commands:
             kubectl delete -f dagster-service-account.yaml --namespace=production
             kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --namespace=production
             # You can swap -l with the word selector (no dash).  Tells you what to filter on
-            kubectl delete all -l app=dagster --namespace=production
+            kubectl delete all -l app=dagster
             exit 1
 
       - run: 
@@ -69,7 +69,7 @@ commands:
           when: on_fail
           command: |
             echo "Deleting Cluster"
-            eksctl delete cluster --name=<<parameters.cluster-name>> --namespace production
+            eksctl delete cluster --name=<<parameters.cluster-name>>
             exit 1
 
 jobs:
@@ -294,7 +294,7 @@ jobs:
   # https://circleci.com/docs/2.0/configuration-cookbook/#using-amazon-elastic-container-service-for-kubernetes-amazon-eks 
   # https://circleci.com/developer/orbs/orb/circleci/kubernetes#usage-deployment
   # https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#cluster-info
-  eks-deploy-resources:
+  deploy-blue-candidate:
     #executor: aws-eks/python3
     docker:
       - image: cimg/python:3.9.7
@@ -345,7 +345,7 @@ jobs:
       - run: 
           name: Create Service Account in Cluster
           command: |
-            #cd kubernetes
+            cd kubernetes
             kubectl apply -f dagster-service-account.yaml --namespace=production
 
       - run: 
@@ -356,7 +356,7 @@ jobs:
       - run: 
           name: Deploy Dagster Service
           command: |
-            #cd kubernetes
+            cd kubernetes
             kubectl apply -f dagster-deployment-blue.yaml --namespace=production
             kubectl apply -f dagster-service.yaml --namespace=production
 
@@ -431,7 +431,7 @@ jobs:
       - run: 
           name: Deploy Green Candidate
           command: |
-            #cd kubernetes
+            cd kubernetes
             kubectl apply -f dagster-deployment-green.yaml --namespace=production
             kubectl rollout status deploy dagster-deployment-green -w
             kubectl patch service dagster-deployment-green -p '{"spec":{"selector":{"version":"v2.0.0"}}}'
@@ -548,7 +548,7 @@ workflows:
       #        branches:
       #          only: [main, develop, uj_deploy]
 
-      - eks-deploy-resources:
+      - deploy-blue-candidate:
           cluster-name: dagster-eks
           requires:
             #- aws-eks/create-cluster
@@ -561,7 +561,7 @@ workflows:
           cluster-name: dagster-eks
           requires:
             #- aws-eks/create-cluster
-            - eks-deploy-resources
+            - deploy-blue-candidate
           filters:
              branches:
                only: [main, develop, uj_deploy]
@@ -575,7 +575,7 @@ workflows:
       - delete-eks-cluster:
           cluster-name: dagster-eks
           requires:
-            - eks-deploy-resources
+            - deploy-blue-candidate
             - hold 
           filters:
              branches:
