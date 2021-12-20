@@ -56,10 +56,12 @@ commands:
           command: |
             echo "Undeploying Applications"
             cd kubernetes
-            kubectl delete -f dagster-service.yaml --namespace=production
-            kubectl delete -f dagster-deployment.yaml --namespace=production
+            # kubectl delete -f dagster-service.yaml --namespace=production
+            # kubectl delete -f dagster-deployment.yaml --namespace=production
             kubectl delete -f dagster-service-account.yaml --namespace=production
             kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --namespace=production
+            # You can swap -l with the word selector (no dash).  Tells you what to filter on
+            kubectl delete all -l app=dagster --namespace=production
             exit 1
 
       - run: 
@@ -352,10 +354,10 @@ jobs:
             kubectl get sa production-service-account --namespace=production
 
       - run: 
-          name: Deploy Dagaster Service
+          name: Deploy Dagster Service
           command: |
             #cd kubernetes
-            kubectl apply -f dagster-deployment.yaml --namespace=production
+            kubectl apply -f dagster-deployment-blue.yaml --namespace=production
             kubectl apply -f dagster-service.yaml --namespace=production
 
       # - kubernetes/create-or-update-resource:
@@ -374,14 +376,94 @@ jobs:
             kubectl describe pods
 
       - run: 
-          name: Expose to the public through load balancer
+          name: Test Deployment
           command: |
-            kubectl expose deployment dagster-deployment \
-            --namespace=production \
-            --type=LoadBalancer \
-            --name=dagster-service
+            # Check and wait for status of rollout
+            kubectl rollout status deploy dagster -w
 
-            kubectl get service/dagster-service --namespace=production
+            # Gets URL of website
+            ELB=$(kubectl get service dagster -o json | jq -r '.status.loadBalancer.ingress[].hostname')
+
+            # Test URL 
+            curl -m3 -v $ELB
+
+      # - run: 
+      #     name: Expose to the public through load balancer
+      #     command: |
+      #       kubectl expose deployment dagster-deployment \
+      #       --namespace=production \
+      #       --type=LoadBalancer \
+      #       --name=dagster-service
+
+      #       kubectl get service/dagster-service --namespace=production
+      #Using your browser, navigate to the DNS endpoint specified in the EXTERNAL-IP 
+      # Destroy cluster on fail
+      - cleanup-eks:
+          cluster-name: <<parameters.cluster-name>>
+  
+  # Reference: https://github.com/ContainerSolutions/k8s-deployment-strategies/tree/master/blue-green/single-service
+  deploy-green-candidate:
+    docker:
+      - image: cimg/python:3.9.7
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+    working_directory: ~/project/kubernetes
+    steps:
+      - checkout
+      - aws-cli/install
+      - kubernetes/install-kubectl
+      - run: 
+          name: Install eksctl
+          command: |
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            sudo mv /tmp/eksctl /usr/local/bin
+            eksctl version
+      # Configure your computer to communicate with your cluster
+      - run: 
+          name: Update Kubeconfig for Cluster
+          command: |
+            aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name <<parameters.cluster-name>>
+            kubectl get svc
+
+      - run: 
+          name: Deploy Green Candidate
+          command: |
+            #cd kubernetes
+            kubectl apply -f dagster-deployment-green.yaml --namespace=production
+            kubectl rollout status deploy dagster-deployment-green -w
+            kubectl patch service dagster-deployment-green -p '{"spec":{"selector":{"version":"v2.0.0"}}}'
+
+      - run: 
+          name: Test Deployment and Swap
+          command: |
+            # Gets URL of website
+            ELB=$(kubectl get service dagster -o json | jq -r '.status.loadBalancer.ingress[].hostname')
+
+            # Test URL 
+            curl -m3 -v $ELB
+
+            # Delete old app
+            kubectl delete deploy dagster-deployment-blue
+      
+      # - run: 
+      #     name: Check Pods and Service are created
+      #     command: |
+      #       kubectl get pods --namespace=production
+      #       kubectl get services --namespace=production
+      #       kubectl describe pods
+
+      # - run: 
+      #     name: Expose to the public through load balancer
+      #     command: |
+      #       kubectl expose deployment dagster-deployment \
+      #       --namespace=production \
+      #       --type=LoadBalancer \
+      #       --name=dagster-service
+
+      #       kubectl get service/dagster-service --namespace=production
       #Using your browser, navigate to the DNS endpoint specified in the EXTERNAL-IP 
       # Destroy cluster on fail
       - cleanup-eks:
@@ -416,10 +498,13 @@ jobs:
           command: |
             echo "Undeploying Applications"
             cd kubernetes
-            kubectl delete -f dagster-service.yaml --namespace=production
-            kubectl delete -f dagster-deployment.yaml --namespace=production
+            #kubectl delete -f dagster-service.yaml --namespace=production
+            #kubectl delete -f dagster-deployment.yaml --namespace=production
             kubectl delete -f dagster-service-account.yaml --namespace=production
             kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --namespace=production
+            
+            # You can swap -l with the word selector (no dash).  Tells you what to filter on
+            kubectl delete all -l app=dagster --namespace=production
 
       - run: 
           name: Delete Cluster
@@ -471,13 +556,21 @@ workflows:
           filters:
              branches:
                only: [main, develop, uj_deploy]
-               
+              
+      - deploy-green-candidate:
+          cluster-name: dagster-eks
+          requires:
+            #- aws-eks/create-cluster
+            - eks-deploy-resources
+          filters:
+             branches:
+               only: [main, develop, uj_deploy]
       # Swap Blue/Green candidates in Docker (remember what the blue candidate was, just in case you need to rollback)
       # Manually approve cleanup
       - hold:
          type: approval
          requires:
-            - eks-deploy-resources
+            - deploy-green-candidate
 
       - delete-eks-cluster:
           cluster-name: dagster-eks

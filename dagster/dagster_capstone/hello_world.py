@@ -43,6 +43,6 @@ def diamond():
     )
 
 
-def fail_lint():
-    import os, sys
-    print(f"This is supposed to fail, because of the way I did the import")
+# def fail_lint():
+#     import os, sys #Unused import
+#     print(f"This is supposed to fail, because of the way I did the import")

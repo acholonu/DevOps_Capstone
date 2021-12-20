@@ -583,3 +583,4 @@ The Volume in this exercise provides a way for Containers to communicate during 
 - [Managing Secrets in Kubernetes](https://kubernetes.io/docs/tasks/configmap-secret/managing-secret-using-kubectl/)
 - [Minikube Documentation](https://minikube.sigs.k8s.io/docs/start/)
   - use kubernetes locally on your laptop to learn kubernetes.
+- [Implementing Different Deployment Strategies in Kubernetes](https://blog.container-solutions.com/kubernetes-deployment-strategies)
