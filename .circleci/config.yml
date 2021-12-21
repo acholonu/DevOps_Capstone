@@ -367,7 +367,7 @@ jobs:
           command: |
             cd kubernetes
             # Check and wait for status of rollout
-            kubectl rollout status deploy dagster -w --namespace=production
+            kubectl rollout status deploy dagster-deployment-blue -w --namespace=production
 
             # Gets URL of website
             ELB=$(kubectl get service/dagster-service-loadbalancer --namespace=production -o json | jq -r '.status.loadBalancer.ingress[].hostname')
@@ -411,8 +411,8 @@ jobs:
           command: |
             cd kubernetes
             kubectl apply -f dagster-deployment-green.yaml --namespace=production
-            kubectl rollout status deploy dagster-deployment-green -w
-            kubectl patch service dagster-deployment-green -p '{"spec":{"selector":{"version":"v2.0.0"}}}'
+            kubectl rollout status deploy dagster-deployment-green -w --namespace=production
+            kubectl patch service dagster-deployment-green -p '{"spec":{"selector":{"version":"v2.0.0"}}}' --namespace=production
 
       - run: 
           name: Test Deployment and Swap
