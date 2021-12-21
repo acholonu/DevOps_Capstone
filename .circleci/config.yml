@@ -321,6 +321,13 @@ jobs:
             aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name <<parameters.cluster-name>>
             kubectl get svc
 
+      - run: 
+          # Makes Json outputs pretty
+          name: Install JQ
+          command: |
+            sudo apt update
+            sudo apt install jq
+
       - run:
           name: Change Namespace
           command: |
@@ -357,8 +364,11 @@ jobs:
           name: Deploy Dagster Service
           command: |
             cd kubernetes
-            kubectl apply -f dagster-deployment-blue.yaml --namespace=production
-            kubectl apply -f dagster-service.yaml --namespace=production
+            kubectl apply -f dagster-deployment-blue.yaml --namespace=production 
+            kubectl create -f dagster-service.yaml --namespace=production
+
+            # Return all results
+            kubectl get service/dagster-service-loadbalancer -o json | jq '.' 
 
       # - kubernetes/create-or-update-resource:
       #     get-rollout-status: true
@@ -371,9 +381,15 @@ jobs:
       - run: 
           name: Check Pods and Service are created
           command: |
+            echo "Checking Pods"
             kubectl get pods --namespace=production
+
+            echo -e "\nChecking Services"
             kubectl get services --namespace=production
-            kubectl describe pods
+
+            echo -e "\Checking Pods"
+            kubectl describe pods --namespace=production
+
 
       - run: 
           name: Test Deployment
@@ -382,7 +398,7 @@ jobs:
             kubectl rollout status deploy dagster -w
 
             # Gets URL of website
-            ELB=$(kubectl get service/dagster -o json | jq -r '.status.loadBalancer.ingress[].hostname')
+            ELB=$(kubectl get service/dagster-service-loadbalancer -o json | jq -r '.status.loadBalancer.ingress[].hostname')
 
             # Test URL 
             curl -m3 -v $ELB
@@ -435,7 +451,6 @@ jobs:
             kubectl apply -f dagster-deployment-green.yaml --namespace=production
             kubectl rollout status deploy dagster-deployment-green -w
             kubectl patch service dagster-deployment-green -p '{"spec":{"selector":{"version":"v2.0.0"}}}'
-            kubectl rollout status deploy dagster-deployment-green -w
 
       - run: 
           name: Test Deployment and Swap
