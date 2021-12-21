@@ -263,20 +263,8 @@ jobs:
             echo "@@@ Nodes"
             kubectl get nodes -o wide
 
-            #echo -e "\n@@@ Services"
-            #kubectl get services
-
-            echo "@@@ Pods"
-            kubectl get pods --all-namespaces -o wide
-
-      - run:
-          name: View Kubernetes Resources
-          command: |
-            echo "@@@ Nodes"
-            kubectl get nodes -o wide
-
-            #echo -e "\n@@@ Services"
-            #kubectl get services
+            echo "@@@ Services"
+            kubectl get services
 
             echo "@@@ Pods"
             kubectl get pods --all-namespaces -o wide
@@ -321,12 +309,13 @@ jobs:
             aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name <<parameters.cluster-name>>
             kubectl get svc
 
-      - run: 
-          # Makes Json outputs pretty
-          name: Install JQ
-          command: |
-            sudo apt update
-            sudo apt install jq
+      # Already installed
+      # - run: 
+      #     # Makes Json outputs pretty
+      #     name: Install JQ
+      #     command: |
+      #       sudo apt update
+      #       sudo apt install jq
 
       - run:
           name: Change Namespace
@@ -365,18 +354,10 @@ jobs:
           command: |
             cd kubernetes
             kubectl apply -f dagster-deployment-blue.yaml --namespace=production 
-            kubectl create -f dagster-service.yaml --namespace=production
+            kubectl apply -f dagster-service.yaml --namespace=production
 
             # Return all results
-            kubectl get service/dagster-service-loadbalancer -o json | jq '.' 
-
-      # - kubernetes/create-or-update-resource:
-      #     get-rollout-status: true
-      #     resource-file-path: kubernetes/dagster-deployment.yaml # path in git directory
-      #     resource-name: deployment/dagster-deployment.yaml # <Type of Resource>/<Name>
-      #     show-kubectl-command: true
-      #     watch-rollout-status: true
-      #     namespace: production
+            kubectl get -f dagster-service.yaml -o json | jq '.' 
       
       - run: 
           name: Check Pods and Service are created
@@ -394,11 +375,12 @@ jobs:
       - run: 
           name: Test Deployment
           command: |
+            cd kubernetes
             # Check and wait for status of rollout
             kubectl rollout status deploy dagster -w
 
             # Gets URL of website
-            ELB=$(kubectl get service/dagster-service-loadbalancer -o json | jq -r '.status.loadBalancer.ingress[].hostname')
+            ELB=$(kubectl get -f dagster-service.yaml -o json | jq -r '.status.loadBalancer.ingress[].hostname')
 
             # Test URL 
             curl -m3 -v $ELB
