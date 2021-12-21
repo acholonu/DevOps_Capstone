@@ -372,8 +372,9 @@ jobs:
             # Gets URL of website
             ELB=$(kubectl get service/dagster-service-loadbalancer --namespace=production -o json | jq -r '.status.loadBalancer.ingress[].hostname')
 
-            # Test URL 
-            curl -m3 -v $ELB
+            # Test URL
+            echo "Elastic Load Balancer IP: $ELB" 
+            #curl -m3 -v $ELB
       
       # Destroy cluster on fail
       - cleanup-eks:
@@ -422,7 +423,7 @@ jobs:
             echo "Elastic Load Balancer IP=$ELB"
 
             # Test URL 
-            curl -m3 -v $ELB
+            #curl -m3 -v $ELB
 
             # Delete old app
             kubectl delete deploy dagster-deployment-blue --namespace=production
