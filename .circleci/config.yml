@@ -248,10 +248,14 @@ jobs:
             #eksctl create cluster -f dagster-cluster.yaml
 
             # Reference: https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html
+            # eksctl create cluster \
+            # --name <<parameters.cluster-name>> \
+            # --region $AWS_DEFAULT_REGION \
+            # --fargate #optional
+
             eksctl create cluster \
             --name <<parameters.cluster-name>> \
-            --region $AWS_DEFAULT_REGION \
-            --fargate #optional
+            --region $AWS_DEFAULT_REGION
 
       # Reference: https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html
       - run: 
@@ -395,9 +399,10 @@ jobs:
 
       #       kubectl get service/dagster-service --namespace=production
       #Using your browser, navigate to the DNS endpoint specified in the EXTERNAL-IP 
+      
       # Destroy cluster on fail
-      - cleanup-eks:
-          cluster-name: <<parameters.cluster-name>>
+      # - cleanup-eks:
+      #     cluster-name: <<parameters.cluster-name>>
   
   # Reference: https://github.com/ContainerSolutions/k8s-deployment-strategies/tree/master/blue-green/single-service
   deploy-green-candidate:
@@ -446,27 +451,10 @@ jobs:
 
             # Delete old app
             kubectl delete deploy dagster-deployment-blue
-      
-      # - run: 
-      #     name: Check Pods and Service are created
-      #     command: |
-      #       kubectl get pods --namespace=production
-      #       kubectl get services --namespace=production
-      #       kubectl describe pods
-
-      # - run: 
-      #     name: Expose to the public through load balancer
-      #     command: |
-      #       kubectl expose deployment dagster-deployment \
-      #       --namespace=production \
-      #       --type=LoadBalancer \
-      #       --name=dagster-service
-
-      #       kubectl get service/dagster-service --namespace=production
-      #Using your browser, navigate to the DNS endpoint specified in the EXTERNAL-IP 
+         
       # Destroy cluster on fail
-      - cleanup-eks:
-          cluster-name: <<parameters.cluster-name>>
+      # - cleanup-eks:
+      #     cluster-name: <<parameters.cluster-name>>
 
   delete-eks-cluster:
     docker:
