@@ -12,7 +12,6 @@ metadata:
     app: dagster
     version: v2.0.0 
 spec:
-  serviceAccountName: production-service-account # Don't need this because my repository is public
   selector: # Tells the deployment which pods to manage. Must be labelled as dagster
     matchLabels:
       app: dagster

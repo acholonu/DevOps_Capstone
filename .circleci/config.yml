@@ -59,7 +59,7 @@ commands:
             # kubectl delete -f dagster-service.yaml --namespace=production
             # kubectl delete -f dagster-deployment.yaml --namespace=production
             kubectl delete -f dagster-service-account.yaml --namespace=production
-            kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --namespace=production
+            kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --namespace=kube-system
             # You can swap -l with the word selector (no dash).  Tells you what to filter on
             kubectl delete all -l app=dagster
             exit 1
@@ -501,10 +501,10 @@ jobs:
             #kubectl delete -f dagster-service.yaml --namespace=production
             #kubectl delete -f dagster-deployment.yaml --namespace=production
             kubectl delete -f dagster-service-account.yaml --namespace=production
-            kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --namespace=production
+            kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --namespace=kube-system
             
             # You can swap -l with the word selector (no dash).  Tells you what to filter on
-            kubectl delete all -l app=dagster --namespace=production
+            kubectl delete all -l app=dagster
 
       - run: 
           name: Delete Cluster
