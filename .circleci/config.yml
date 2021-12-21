@@ -382,7 +382,7 @@ jobs:
             kubectl rollout status deploy dagster -w
 
             # Gets URL of website
-            ELB=$(kubectl get service dagster -o json | jq -r '.status.loadBalancer.ingress[].hostname')
+            ELB=$(kubectl get service/dagster -o json | jq -r '.status.loadBalancer.ingress[].hostname')
 
             # Test URL 
             curl -m3 -v $ELB
@@ -435,12 +435,14 @@ jobs:
             kubectl apply -f dagster-deployment-green.yaml --namespace=production
             kubectl rollout status deploy dagster-deployment-green -w
             kubectl patch service dagster-deployment-green -p '{"spec":{"selector":{"version":"v2.0.0"}}}'
+            kubectl rollout status deploy dagster-deployment-green -w
 
       - run: 
           name: Test Deployment and Swap
           command: |
             # Gets URL of website
-            ELB=$(kubectl get service dagster -o json | jq -r '.status.loadBalancer.ingress[].hostname')
+            ELB=$(kubectl get service/dagster -o json | jq -r '.status.loadBalancer.ingress[].hostname')
+            echo "Elastic Load Balancer IP=$ELB"
 
             # Test URL 
             curl -m3 -v $ELB

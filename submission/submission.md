@@ -12,7 +12,13 @@ Include with your Linting step both a failed Linting screenshot and a successful
 
 **Successful Lint**:
 
+![Successful Lint]()
+
 **Unsuccessful Lint**:
+
+![Unsuccessful Lint Pipeline](failed_lint_pipeline.png)
+
+![Unsuccessful Lint Step](failed_lint-step.png)
 
 ## Deployment
 
