@@ -24,6 +24,7 @@ spec:
         app: dagster
         version: v1.0.0
     spec:
+      serviceAccountName: production-service-account
       containers:
       # Dagster UI
         - name: dagit-container

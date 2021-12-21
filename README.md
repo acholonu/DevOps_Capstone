@@ -584,3 +584,5 @@ The Volume in this exercise provides a way for Containers to communicate during 
 - [Minikube Documentation](https://minikube.sigs.k8s.io/docs/start/)
   - use kubernetes locally on your laptop to learn kubernetes.
 - [Implementing Different Deployment Strategies in Kubernetes](https://blog.container-solutions.com/kubernetes-deployment-strategies)
+- [Allow other AWS user to access Cluster](https://aws.amazon.com/premiumsupport/knowledge-center/eks-api-server-unauthorized-error/)
+- [All About Kubernetes Port Types](https://medium.com/@deepeshtripathi/all-about-kubernetes-port-types-nodeport-targetport-port-containerport-e9f447330b19)

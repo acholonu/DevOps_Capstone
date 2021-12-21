@@ -229,7 +229,6 @@ jobs:
             curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
             sudo mv /tmp/eksctl /usr/local/bin
             eksctl version
-      #- aws-eks/install-aws-iam-authenticator
 
       # Reference: https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html
       - run: 
@@ -244,15 +243,6 @@ jobs:
       - run: 
           name: Create Cluster
           command: |
-            #cd kubernetes
-            #eksctl create cluster -f dagster-cluster.yaml
-
-            # Reference: https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html
-            # eksctl create cluster \
-            # --name <<parameters.cluster-name>> \
-            # --region $AWS_DEFAULT_REGION \
-            # --fargate #optional
-
             eksctl create cluster \
             --name <<parameters.cluster-name>> \
             --region $AWS_DEFAULT_REGION
@@ -313,14 +303,6 @@ jobs:
             aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name <<parameters.cluster-name>>
             kubectl get svc
 
-      # Already installed
-      # - run: 
-      #     # Makes Json outputs pretty
-      #     name: Install JQ
-      #     command: |
-      #       sudo apt update
-      #       sudo apt install jq
-
       - run:
           name: Change Namespace
           command: |
@@ -342,6 +324,9 @@ jobs:
             --docker-email=$DOCKER_EMAIL \
             --namespace=production
 
+            #Verify secret has been made
+            kubectl get secrets regcred
+
       - run: 
           name: Create Service Account in Cluster
           command: |
@@ -361,6 +346,7 @@ jobs:
             kubectl apply -f dagster-service.yaml --namespace=production
 
             # Return all results
+            # jq is a utility that print out json text in a pretty format
             kubectl get -f dagster-service.yaml -o json | jq '.' 
       
       - run: 
@@ -384,25 +370,14 @@ jobs:
             kubectl rollout status deploy dagster -w
 
             # Gets URL of website
-            ELB=$(kubectl get -f dagster-service.yaml -o json | jq -r '.status.loadBalancer.ingress[].hostname')
+            ELB=$(kubectl get service/dagster-service-loadbalancer --namespace=production -o json | jq -r '.status.loadBalancer.ingress[].hostname')
 
             # Test URL 
             curl -m3 -v $ELB
-
-      # - run: 
-      #     name: Expose to the public through load balancer
-      #     command: |
-      #       kubectl expose deployment dagster-deployment \
-      #       --namespace=production \
-      #       --type=LoadBalancer \
-      #       --name=dagster-service
-
-      #       kubectl get service/dagster-service --namespace=production
-      #Using your browser, navigate to the DNS endpoint specified in the EXTERNAL-IP 
       
       # Destroy cluster on fail
-      # - cleanup-eks:
-      #     cluster-name: <<parameters.cluster-name>>
+      - cleanup-eks:
+          cluster-name: <<parameters.cluster-name>>
   
   # Reference: https://github.com/ContainerSolutions/k8s-deployment-strategies/tree/master/blue-green/single-service
   deploy-green-candidate:
@@ -443,18 +418,18 @@ jobs:
           name: Test Deployment and Swap
           command: |
             # Gets URL of website
-            ELB=$(kubectl get service/dagster -o json | jq -r '.status.loadBalancer.ingress[].hostname')
+            ELB=$(kubectl get service/dagster-service-loadbalancer --namespace=production -o json | jq -r '.status.loadBalancer.ingress[].hostname')
             echo "Elastic Load Balancer IP=$ELB"
 
             # Test URL 
             curl -m3 -v $ELB
 
             # Delete old app
-            kubectl delete deploy dagster-deployment-blue
+            kubectl delete deploy dagster-deployment-blue --namespace=production
          
       # Destroy cluster on fail
-      # - cleanup-eks:
-      #     cluster-name: <<parameters.cluster-name>>
+      - cleanup-eks:
+          cluster-name: <<parameters.cluster-name>>
 
   delete-eks-cluster:
     docker:

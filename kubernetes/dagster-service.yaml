@@ -17,5 +17,5 @@ spec:
   type: LoadBalancer # Open traffic to outside traffix
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 3000
+      port: 80 # port must be identical to node port, since nodeport will route external traffic to the service pod
+      targetPort: 3000 #targetPort must be identical to container port, since it will route traffic to container
