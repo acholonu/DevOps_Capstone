@@ -367,7 +367,7 @@ jobs:
           command: |
             cd kubernetes
             # Check and wait for status of rollout
-            kubectl rollout status deploy dagster -w
+            kubectl rollout status deploy dagster -w --namespace=production
 
             # Gets URL of website
             ELB=$(kubectl get service/dagster-service-loadbalancer --namespace=production -o json | jq -r '.status.loadBalancer.ingress[].hostname')
