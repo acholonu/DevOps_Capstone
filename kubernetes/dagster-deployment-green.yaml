@@ -35,4 +35,5 @@ spec:
           imagePullPolicy: Always
           ports: 
             - containerPort: 3000
-            - name: dagit
+              name: dagit
+              protocol: TCP
