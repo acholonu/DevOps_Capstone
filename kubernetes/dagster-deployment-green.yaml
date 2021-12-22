@@ -12,7 +12,7 @@ metadata:
     app: dagster
     version: v2.0.0 
 spec:
-  selector: # Tells the deployment which pods to manage. Must be labelled as dagster
+  selector: # Tells the deployment which pods to manage. Must be labeled as dagster, v2.0.0
     matchLabels:
       app: dagster
       version: v2.0.0

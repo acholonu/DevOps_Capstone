@@ -3,6 +3,8 @@
 # Create a Service. A Service allows you to access all replicas through a single IP address or name. 
 #
 # Multi-Port Services: https://kubernetes.io/docs/concepts/services-networking/service/#multi-port-services
+# This yaml file creates a new service called dagster-service-loadbalancer, which targets TCP port 3000 on any
+# pod with the app=dagster and version=1.0.0 labels
 apiVersion: v1
 kind: Service
 metadata:
