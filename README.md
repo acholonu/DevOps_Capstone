@@ -581,3 +581,8 @@ The Volume in this exercise provides a way for Containers to communicate during 
   - Docker-Compose combines microservices into 1 docker file.  However, this microservice is supposed to run on one host (one virtual machine or computer).  Kubernetes runs containers across many hosts (virtual machines).  So microservices (which are multiple containers) may not all be on the same hosts. When working with a Docker Compose-based application, the server running the application must be kept running for the application to continue working. This means the server running Compose becomes a single point of failure. In contrast, Kubernetes usually is run in a highly available (HA) state with multiple servers that deploy and maintain the application to the different nodes. Kubernetes also manages the scaling of the nodes based on resource utilization.
 - [Kubectl Command Reference](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#run)
 - [Managing Secrets in Kubernetes](https://kubernetes.io/docs/tasks/configmap-secret/managing-secret-using-kubectl/)
+- [Minikube Documentation](https://minikube.sigs.k8s.io/docs/start/)
+  - use kubernetes locally on your laptop to learn kubernetes.
+- [Implementing Different Deployment Strategies in Kubernetes](https://blog.container-solutions.com/kubernetes-deployment-strategies)
+- [Allow other AWS user to access Cluster](https://aws.amazon.com/premiumsupport/knowledge-center/eks-api-server-unauthorized-error/)
+- [All About Kubernetes Port Types](https://medium.com/@deepeshtripathi/all-about-kubernetes-port-types-nodeport-targetport-port-containerport-e9f447330b19)

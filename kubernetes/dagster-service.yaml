@@ -1,13 +1,23 @@
+# Reference
+# ---------
+# Create a Service. A Service allows you to access all replicas through a single IP address or name. 
+#
+# Multi-Port Services: https://kubernetes.io/docs/concepts/services-networking/service/#multi-port-services
+# This yaml file creates a new service called dagster-service-loadbalancer, which targets TCP port 3000 on any
+# pod with the app=dagster and version=1.0.0 labels
 apiVersion: v1
 kind: Service
 metadata:
-  name: dagster
+  # name of the service
+  name: dagster-service-loadbalancer
+  namespace: "production" 
 spec:
-  ports:
-    - port: 3000
-      name: dagit
-    # - port: 5432
-    #   name: postgres
+  # Has to match name and version
   selector:
     app: dagster
-  clusterIP: None
+    version: v1.0.0
+  type: LoadBalancer # Open traffic to outside traffix
+  ports:
+    - protocol: TCP
+      port: 80 # port must be identical to node port, since nodeport will route external traffic to the service pod
+      targetPort: 3000 #targetPort must be identical to container port, since it will route traffic to container

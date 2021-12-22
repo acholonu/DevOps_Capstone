@@ -4,9 +4,9 @@ version: 2.1
 orbs:
   slack: circleci/slack@4.5.0
   aws-cli: circleci/aws-cli@2.0.6
-  aws-eks: circleci/aws-eks@1.1.0
+  aws-eks: circleci/aws-eks@2.0.0
   browser-tools: circleci/browser-tools@1.2.3
-  kubernetes: circleci/kubernetes@0.12.1
+  kubernetes: circleci/kubernetes@1.0.2
   docker: circleci/docker@2.0.1
 
 # These are custom functions that I use in other jobs
@@ -45,6 +45,9 @@ commands:
     parameters:
       cluster-name:
         type: string
+      # delete-when:
+      #   type: string
+      #   default: on_fail # on_success
     steps:
       - checkout
       - run:
@@ -53,9 +56,14 @@ commands:
           command: |
             echo "Undeploying Applications"
             cd kubernetes
-            kubectl delete -f dagster-service.yaml
-            kubectl delete -f dagster-deployment.yaml
+            # kubectl delete -f dagster-service.yaml --namespace=production
+            # kubectl delete -f dagster-deployment.yaml --namespace=production
+            kubectl delete -f dagster-service-account.yaml --namespace=production
+            kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --namespace=kube-system
+            # You can swap -l with the word selector (no dash).  Tells you what to filter on
+            kubectl delete all -l app=dagster
             exit 1
+
       - run: 
           name: Delete Cluster
           when: on_fail
@@ -63,9 +71,6 @@ commands:
             echo "Deleting Cluster"
             eksctl delete cluster --name=<<parameters.cluster-name>>
             exit 1
-
-
-
 
 jobs:
   lint:
@@ -144,7 +149,7 @@ jobs:
 
   # Build container and make sure browser test passes
   # More about URL servers
-  build-and-test-image:
+  build-and-deploy-image:
     docker:
       - image: cimg/python:3.9.7
     working_directory: ~/project/dagster
@@ -199,41 +204,65 @@ jobs:
 
             echo "@@@Push to Repository"
             docker login -u $DOCKER_USERNAME -p $DOCKER_ACCESS_CODE
-            #docker-compose -f docker-compose-prod.yml push
             docker tag $DOCKER_USERNAME/dagit:$VERSION $DOCKER_USERNAME/dagit:latest
             docker image push  $DOCKER_USERNAME/dagit:$VERSION
             docker image push $DOCKER_USERNAME/dagit:latest
 
-      # - run:
-      #     name: Deploy to Docker Repository
-      #     command: |
-      #       cd dagster
-      #       echo "Deploying to Docker"
-      #       docker login -u $DOCKER_USERNAME -p $DOCKER_ACCESS_CODE
-      #       docker-compose -f docker-compose-prod.yml push
-      #       docker tag $DOCKER_USERNAME/dagit:$VERSION $DOCKER_USERNAME/dagit:latest
-      #       docker image push $DOCKER_USERNAME/dagit:latest
-
-  # Jobs for Continuous Deployment          
-  initiate-cluster:
-    executor: aws-eks/python3
+  #Jobs for Continuous Deployment          
+  create-cluster:
+    #executor: aws-eks/python3
+    docker:
+      - image: cimg/python:3.9.7
     parameters:
       cluster-name:
         description: |
           Name of the EKS cluster
         type: string
     steps:
+      - checkout
+      - aws-cli/install # Works only for python images, need install python 
+      - docker/install-docker-tools
       - kubernetes/install
-      - aws-eks/update-kubeconfig-with-authenticator:
-          cluster-name: <<parameters.cluster-name>>
-      - run:
-          name: Test cluster
+      - run: 
+          name: Install eksctl
           command: |
-            echo "@@@ Nodes"
-            kubectl get nodes
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            sudo mv /tmp/eksctl /usr/local/bin
+            eksctl version
 
-            echo -e "\n@@@ Services"
+      # Reference: https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html
+      - run: 
+          name: Install AWS IAM Authenticator
+          command: |
+            curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.21.2/2021-07-05/bin/linux/amd64/aws-iam-authenticator
+            chmod +x ./aws-iam-authenticator
+            mkdir -p $HOME/bin && cp ./aws-iam-authenticator $HOME/bin/aws-iam-authenticator && export PATH=$PATH:$HOME/bin
+            echo 'export PATH=$PATH:$HOME/bin' >> ~/.bashrc
+            aws-iam-authenticator help
+      
+      - run: 
+          name: Create Cluster
+          command: |
+            eksctl create cluster \
+            --name <<parameters.cluster-name>> \
+            --region $AWS_DEFAULT_REGION
+
+      # Reference: https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html
+      - run: 
+          name: Create Kubeconfig for Cluster
+          command: |
+            aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name <<parameters.cluster-name>>
+            kubectl get svc
+
+            echo "@@@ Nodes"
+            kubectl get nodes -o wide
+
+            echo "@@@ Services"
             kubectl get services
+
+            echo "@@@ Pods"
+            kubectl get pods --all-namespaces -o wide
+
       # Destroy cluster on fail
       - run:
           name: Delete Cluster
@@ -246,8 +275,11 @@ jobs:
   # Reference:
   # https://circleci.com/docs/2.0/configuration-cookbook/#using-amazon-elastic-container-service-for-kubernetes-amazon-eks 
   # https://circleci.com/developer/orbs/orb/circleci/kubernetes#usage-deployment
-  eks-deploy-resources:
-    executor: aws-eks/python3
+  # https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#cluster-info
+  deploy-blue-candidate:
+    #executor: aws-eks/python3
+    docker:
+      - image: cimg/python:3.9.7
     parameters:
       cluster-name:
         description: |
@@ -258,15 +290,31 @@ jobs:
       - checkout
       - aws-cli/install
       - kubernetes/install-kubectl
-      # TO DO: Create yaml files that describe the resource
-      # Create Stateful Deployment Resource
-      # Create Service Resource
+      - run: 
+          name: Install eksctl
+          command: |
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            sudo mv /tmp/eksctl /usr/local/bin
+            eksctl version
+      # Configure your computer to communicate with your cluster
+      - run: 
+          name: Update Kubeconfig for Cluster
+          command: |
+            aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name <<parameters.cluster-name>>
+            kubectl get svc
+
       - run:
           name: Change Namespace
           command: |
             kubectl create ns production
 
       # Reference: https://stackoverflow.com/questions/49032812/how-to-pull-image-from-dockerhub-in-kubernetes
+      - run: 
+          name: Deploy Metric Server
+          command: |
+            kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --namespace=kube-system
+            kubectl get deployment metrics-server -n kube-system
+
       - run: 
           name: Link DockerHub repo to EKS
           command: |
@@ -275,47 +323,158 @@ jobs:
             --docker-password=$DOCKER_ACCESS_CODE \
             --docker-email=$DOCKER_EMAIL \
             --namespace=production
-      
+
+            #Verify secret has been made
+            kubectl get secrets regcred --namespace=production
+
       - run: 
           name: Create Service Account in Cluster
           command: |
-            kubectl apply -f dagster-service-account.yaml
+            cd kubernetes
+            kubectl apply -f dagster-service-account.yaml --namespace=production
 
       - run: 
           name: Check Service Account is created
           command: |
-            kubectl get sa production-service-account --namespace=dev
+            kubectl get sa production-service-account --namespace=production
 
       - run: 
-          name: Create EBS Volume for Kubernetes if it doesn't exist
+          name: Deploy Dagster Service
           command: |
-            # Check That volume doesn't exist
-            #@@@ Fix!!!
+            cd kubernetes
+            kubectl apply -f dagster-deployment-blue.yaml --namespace=production 
+            kubectl apply -f dagster-service.yaml --namespace=production
 
-            # Create Volume
-            aws ec2 create-volume --availability-zone=$AWS_DEFAULT_REGION --size=10 --volume-type=gp2
+            # Return all results
+            # jq is a utility that print out json text in a pretty format
+            kubectl get -f dagster-service.yaml -o json | jq '.' 
+      
+      - run: 
+          name: Check Pods and Service are created
+          command: |
+            echo "Checking Pods"
+            kubectl get pods --namespace=production
 
-      - kubernetes/create-or-update-resource:
-          get-rollout-status: true
-          resource-file-path: kubernetes/dagster-deployment.yaml # path in git directory
-          resource-name: deployment/dagster-deployment.yaml # <Type of Resource>/<Name>
-          show-kubectl-command: true
-          watch-rollout-status: true
+            echo -e "\nChecking Services"
+            kubectl get services --namespace=production
+
+            echo -e "\Checking Pods"
+            kubectl describe pods --namespace=production
+
 
       - run: 
-          name: Expose to the public through load balancer
+          name: Test Deployment
           command: |
-            kubectl expose deployment dagster-deployment \
-            --namespace=production \
-            --type=LoadBalancer \
-            --name=dagster-service
+            cd kubernetes
+            # Check and wait for status of rollout
+            kubectl rollout status deploy dagster-deployment-blue -w --namespace=production
 
-            kubectl get service/dagster-service --namespace=production
-      #Using your browser, navigate to the DNS endpoint specified in the EXTERNAL-IP 
+            # Gets URL of website
+            ELB=$(kubectl get service/dagster-service-loadbalancer --namespace=production -o json | jq -r '.status.loadBalancer.ingress[].hostname')
+
+            # Test URL
+            echo "Elastic Load Balancer IP: $ELB" 
+            #curl -m3 -v $ELB
+      
       # Destroy cluster on fail
       - cleanup-eks:
           cluster-name: <<parameters.cluster-name>>
+  
+  # Reference: https://github.com/ContainerSolutions/k8s-deployment-strategies/tree/master/blue-green/single-service
+  deploy-green-candidate:
+    docker:
+      - image: cimg/python:3.9.7
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+    working_directory: ~/project/kubernetes
+    steps:
+      - checkout
+      - aws-cli/install
+      - kubernetes/install-kubectl
+      - run: 
+          name: Install eksctl
+          command: |
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            sudo mv /tmp/eksctl /usr/local/bin
+            eksctl version
+      # Configure your computer to communicate with your cluster
+      - run: 
+          name: Update Kubeconfig for Cluster
+          command: |
+            aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name <<parameters.cluster-name>>
+            kubectl get svc
+
+      - run: 
+          name: Deploy Green Candidate
+          command: |
+            cd kubernetes
+            kubectl apply -f dagster-deployment-green.yaml --namespace=production
+            kubectl rollout status deploy dagster-deployment-green -w --namespace=production
+            kubectl patch service dagster-service-loadbalancer -p '{"spec":{"selector":{"version":"v2.0.0"}}}' --namespace=production
+
+      - run: 
+          name: Test Deployment and Swap
+          command: |
+            # Gets URL of website
+            ELB=$(kubectl get service/dagster-service-loadbalancer --namespace=production -o json | jq -r '.status.loadBalancer.ingress[].hostname')
+            echo "Elastic Load Balancer IP=$ELB"
+
+            # Test URL 
+            #curl -m3 -v $ELB
+
+            # Delete old app
+            # Skip this step per instructions
+            # kubectl delete deploy dagster-deployment-blue --namespace=production
+         
+      # Destroy cluster on fail
+      - cleanup-eks:
+          cluster-name: <<parameters.cluster-name>>
+
+  delete-eks-cluster:
+    docker:
+      - image: cimg/python:3.9.7
+    parameters:
+      cluster-name:
+        type: string
+    steps:
+      - checkout
+      - aws-cli/install
+      - kubernetes/install-kubectl
+      - run: 
+          name: Install eksctl
+          command: |
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            sudo mv /tmp/eksctl /usr/local/bin
+            eksctl version
+
+      # Configure your computer to communicate with your cluster
+      - run: 
+          name: Update Kubeconfig for Cluster
+          command: |
+            aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name <<parameters.cluster-name>>
+            kubectl get svc
+
+      - run:
+          name: Undeploy Applications
+          command: |
+            echo "Undeploying Applications"
+            cd kubernetes
+            #kubectl delete -f dagster-service.yaml --namespace=production
+            #kubectl delete -f dagster-deployment.yaml --namespace=production
+            kubectl delete -f dagster-service-account.yaml --namespace=production
+            kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --namespace=kube-system
             
+            # You can swap -l with the word selector (no dash).  Tells you what to filter on
+            kubectl delete all -l app=dagster
+
+      - run: 
+          name: Delete Cluster
+          command: |
+            echo "Deleting Cluster"
+            eksctl delete cluster --name=<<parameters.cluster-name>>           
 
 # Workflows
 # ----------------------
@@ -327,46 +486,46 @@ workflows:
       - test_code:
           requires: [lint] # I need the dependencies to be created first
       
-      - build-and-test-image:
+      - build-and-deploy-image:
           requires: [test_code]
 
-      # - docker/publish:
-      #     image: $DOCKER_USERNAME/dagit
-      #     docker-username: DOCKER_USERNAME
-      #     docker-password: DOCKER_ACCESS_CODE
-      #     path: ~/project/dagster
-      #     docker-context: ~/project/dagster
-      #     tag: $VERSION
-      #     requires: [build-and-test-image]
-
-
-      # - hold:
-      #    type: approval
-      #    requires:
-      #       - docker/publish
-      #    filters:
-      #      branches: 
-      #       ignore: [main, develop]
-
       # END OF CONTINUOUS INTEGRATION, START CONTINUOUS DELIVERY
-
-      # Create EKS cluster (if not already created)
-      # It also creates the default VPC for the cluster
-      # Reference: https://eksctl.io/usage/vpc-networking/
-      - aws-eks/create-cluster:
-          cluster-name: dagster-eks-cluster
-          show-eksctl-command: true
-          tags: "Owner=UgochiJ, application=udacity-app, purpose=learning"
+      - create-cluster:
+          cluster-name: dagster-eks          
           requires:
-            - build-and-test-image
+            - build-and-deploy-image 
           filters:
              branches:
                only: [main, develop, uj_deploy]
+      
+      # Create EKS cluster (if not already created)
+      # It also creates the default VPC for the cluster
+      # Reference: https://eksctl.io/usage/vpc-networking/
+      # - aws-eks/create-cluster:
+      #     cluster-name: dagster-eks
+      #     show-eksctl-command: true
+      #     aws-region: $AWS_DEFAULT_REGION
+      #     tags: "Owner=UgochiJ,application=udacity-app,purpose=learning"
+      #     requires:
+      #       - build-and-deploy-image 
+      #     filters:
+      #        branches:
+      #          only: [main, develop, uj_deploy]
 
-      - eks-deploy-resources:
-          cluster-name: dagster-eks-cluster
+      - deploy-blue-candidate:
+          cluster-name: dagster-eks
           requires:
-            - aws-eks/create-cluster
+            #- aws-eks/create-cluster
+            - create-cluster
+          filters:
+             branches:
+               only: [main, develop, uj_deploy]
+              
+      - deploy-green-candidate:
+          cluster-name: dagster-eks
+          requires:
+            #- aws-eks/create-cluster
+            - deploy-blue-candidate
           filters:
              branches:
                only: [main, develop, uj_deploy]
@@ -375,13 +534,23 @@ workflows:
       - hold:
          type: approval
          requires:
-            - eks-deploy-resources
+            - deploy-green-candidate
 
-      - aws-eks/delete-cluster:
-          cluster-name: dagster-eks-cluster
+      - delete-eks-cluster:
+          cluster-name: dagster-eks
           requires:
-            - aws-eks/create-cluster
+            - deploy-blue-candidate
+            - hold 
           filters:
              branches:
                only: [main, develop, uj_deploy]
+
+      # - aws-eks/delete-cluster:
+      #     cluster-name: dagster-eks
+      #     requires:
+      #       - eks-deploy-resources
+      #       - hold 
+      #     filters:
+      #        branches:
+      #          only: [main, develop, uj_deploy]
       

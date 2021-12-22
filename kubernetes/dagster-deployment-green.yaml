@@ -1,0 +1,39 @@
+#A deployment is responsible for keeping a set of pods running
+# Reference: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+# Reference: https://matthewpalmer.net/kubernetes-app-developer/articles/service-kubernetes-example-tutorial.html
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Name of the deployment
+  name: dagster-deployment-green
+  namespace: production
+  labels: 
+    app: dagster
+    version: v2.0.0 
+spec:
+  selector: # Tells the deployment which pods to manage. Must be labeled as dagster, v2.0.0
+    matchLabels:
+      app: dagster
+      version: v2.0.0
+  replicas: 2 # how many replicas of the pod that should be created
+
+  # Creating the pod with the containers
+  template:
+    metadata:
+      name: dagster-latest
+      labels: # labels this pod as dagster
+        app: dagster
+        version: v2.0.0
+    spec:
+      serviceAccountName: production-service-account
+      containers:
+      # Dagster UI
+        - name: dagit-container
+          image: ujones/dagit:latest
+          #image: $REGISTRY_URL/dagit:latest
+          imagePullPolicy: Always
+          ports: 
+            - containerPort: 3000
+              name: dagit
+              protocol: TCP

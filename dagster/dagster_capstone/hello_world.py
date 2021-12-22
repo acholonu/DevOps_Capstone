@@ -41,3 +41,8 @@ def diamond():
         most_calories=find_highest_calorie_cereal(cereals),
         most_protein=find_highest_protein_cereal(cereals),
     )
+
+
+# def fail_lint():
+#     import os, sys #Unused import
+#     print(f"This is supposed to fail, because of the way I did the import")

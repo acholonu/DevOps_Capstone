@@ -4,7 +4,6 @@
 FROM python:3.9.9-slim AS dagster
 
 LABEL microservice="dagster"
-LABEL service_type="application"
 LABEL role="data-processing"
 LABEL purpose="Data processing of client schemas and schema changes."
 LABEL reference="https://docs.dagster.io/deployment/dagster-instance#compute-log-storage"
