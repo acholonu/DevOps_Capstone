@@ -413,7 +413,7 @@ jobs:
             cd kubernetes
             kubectl apply -f dagster-deployment-green.yaml --namespace=production
             kubectl rollout status deploy dagster-deployment-green -w --namespace=production
-            kubectl patch service dagster-deployment-green -p '{"spec":{"selector":{"version":"v2.0.0"}}}' --namespace=production
+            kubectl patch service dagster-service-loadbalancer -p '{"spec":{"selector":{"version":"v2.0.0"}}}' --namespace=production
 
       - run: 
           name: Test Deployment and Swap
@@ -426,7 +426,8 @@ jobs:
             #curl -m3 -v $ELB
 
             # Delete old app
-            kubectl delete deploy dagster-deployment-blue --namespace=production
+            # Skip this step per instructions
+            # kubectl delete deploy dagster-deployment-blue --namespace=production
          
       # Destroy cluster on fail
       - cleanup-eks:
